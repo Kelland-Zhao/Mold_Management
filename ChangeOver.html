@@ -1,0 +1,259 @@
+<!DOCTYPE html>   
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/css/bootstrap.min.css" integrity="sha512-oc9+XSs1H243/FRN9Rw62Fn8EtxjEYWHXRvjS43YtueEewbS6ObfXcJNyohjHqVKFPoXXUxwc+q1K7Dee6vv9g==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" integrity="sha512-mSYUmp1HYZDFaVKK//63EcZq4iFWFjxSL+Z3T/aCt4IO9Cejm03q3NKKYN6pFQzY0SBOr8h+eCIAZHPXcpZaNw==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css" integrity="sha512-ARJR74swou2y0Q2V9k0GbzQ/5vJ2RBSoCWokg4zkfM29Fb3vZEQyv0iWBMW/yvKgyHSR/7D64pFMmU8nYmbRkg==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous" /> -->
+    <!-- <script src="https://kit.fontawesome.com/f6353ffdae.js" crossorigin="anonymous"></script> -->
+    <?!=include("zj_Integrated_css");?>
+    <?!=include("CSS");?>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card" style="border:0;padding-bottom: 0px;padding-top:0px;margin-bottom:0px;margin-top:0px"> 
+        <h1 id="restoreData" style="text-align:center;background-color:rgb(218,41,28);color:white">注塑模具转规格</h1>
+      </div>
+    
+      <div class="card" style="border:0;padding-bottom: 0px;padding-top:0px;margin-bottom:0px;margin-top:0px">
+
+        <div class="row"  style="margin-bottom:5px">
+          <div class="col">
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text" style="border:0;font-size:small;text-align:center;display:none"><b>车间:</b></span>
+                <span class="input-group-text" id="loginWorkshop" style="border:0;font-size:small;text-align:center;display:none"></span>
+                <span class="input-group-text" style="border:0;font-size:small;text-align:center;display:none"><b>工序:</b></span>
+                <span class="input-group-text" id="loginProcess" style="border:0;font-size:small;text-align:center;display:none"></span>
+                <span class="input-group-text" style="border:0;font-size:small;text-align:center"><b>工号:</b></span>
+                <span class="input-group-text" id="loginId" style="border:0;font-size:small;text-align:center"></span>
+                <span class="input-group-text" style="border:0;font-size:small;text-align:center"><b>姓名:</b></span>
+                <span class="input-group-text" id="loginName" style="border:0;font-size:small;text-align:center"></span>
+                <span class="input-group-text" style="border:0;font-size:small;text-align:center"><b>日期:</b></span>
+              </div>
+              <input placeholder="选择……" id="prodDate" class="data-datepicker" data-provide="datepicker" data-date-format="yyyy-mm-dd" data-date-autoclose="true" placeholder='选择……' style="width:100px;border:1;border-color:red;font-size:small;text-align:center;background:unset" readonly="readonly">
+              <div class="input-group-append">
+                <button id="btnConfirmCo" class="btn btn-sm btn-warning" style="margin-left:15px">确认</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card" style="border:0;padding-bottom: 0px;padding-top:0px;margin-bottom:0px;margin-top:0px"> 
+      
+        <div class="row" style="margin-top:5px;margin-bottom:5px">
+        
+          <div class="col">
+            <table id="tableCoInfo" border="1px solid" cellspacing="0" style="table-layout:fixed;width:100%;word-break:break-all;text-align:center;font-size:small">
+              <thead id="theadCoInfo">
+                <tr style="height:30px;background:cyan">
+                  <th style="text-align:center;width:11%">转规格<br>时间</th>
+                  <th style="text-align:center;width:6%">转规格<br>班次</th>
+                  <th style="text-align:center;width:11%">转规格<br>机台</th>
+                  <th style="text-align:center;width:11%">转规格<br>前模具</th>
+                  <th style="text-align:center;width:11%">转规格<br>前产品</th>
+                  <th style="text-align:center;width:11%">转规格<br>后模具</th>
+                  <th style="text-align:center;width:11%">转规格<br>后产品</th>
+                  <th style="text-align:center;width:6%">转规格<br>后步骤</th>
+                  <th style="text-align:center;width:11%">备注</th>
+                  <th style="text-align:center;width:11%">操作</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyCoInfo">
+                
+              </tbody>
+            </table>
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:5px">  
+        
+        <div class="col text-center">
+          <h6 style="color:#888888">Copyright © 2022 CSX & &nbsp<img src="https://lh3.googleusercontent.com/u/0/d/1HFebZnQEz3ozrLJVkDdIFzg_Sbl_Qw_v" alt="Jin Zhang" width="1%" style="vertical-align:middle;opacity:0.3">&nbsp All Rights Reserved</h6>
+        </div>
+
+      </div>
+
+    </div>    <!--结束container-->
+
+    <!--模态框开始-->
+    <div id="modalOutWarehouse" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered modal-xl"><!-- model-fullscreen modal-xl/style="max-width:100%"-->
+        <div class="modal-content" style="width:100%"><!-- style="width:100%"-->
+        
+          <div class="modal-header">
+            <h4 class="modal-title">出库信息填写<input id="rowOutWarehouse" type="number" style="border:0;outline:0" disabled></h4>
+            <button class="close" data-dismiss="modal">&times;</button>
+          </div>
+          
+          <div class="modal-body">
+          
+            <div class="row" style="border:dashed 0.01rem">
+            
+              <div class="col">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">模具号</span>
+                  </div>
+                  <input type="text" id="moldNoOutWarehouse" class="form-control" placeholder="输入模具号">
+                  <div class="input-group-append">
+                    <button id="btnModalOutWarehouse" class="btn btn-sm btn-warning" style="margin-left:5px" data-dismiss="modal">确认&提交</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> <!--结束modal-body-->
+        </div> <!--结束modal-content-->
+      </div> <!--结束modal-dialog modal-xl-->
+    </div> <!--结束modal fade-->
+    <!--模态框结束-->
+
+    <!--模态框开始-->
+    <div id="modalInstallMold" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered modal-xl"><!-- model-fullscreen modal-xl/style="max-width:100%"-->
+        <div class="modal-content" style="width:100%"><!-- style="width:100%"-->
+        
+          <div class="modal-header">
+            <h4 class="modal-title">上模信息填写<input id="rowInstallMold" type="number" style="border:0;outline:0" disabled></h4>
+            <button class="close" data-dismiss="modal">&times;</button>
+          </div>
+          
+          <div class="modal-body">
+          
+            <div class="row" style="border:dashed 0.01rem">
+            
+              <div class="col">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">模具号</span>
+                  </div>
+                  <input type="text" id="moldNoInstall" class="form-control" placeholder="输入模具号">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">机台号</span>
+                  </div>
+                  <select class="form-control selectpicker" data-style="btn-outline-danger" data-none-selected-text="选择……" data-size="5" data-live-search="true" data-live-search-placeholder="搜索"  id="prodInstallMachine">   
+                  </select>
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">备注</span>
+                  </div>
+                  <input type="text" id="installRemark" class="form-control" value="NA" placeholder="输入备注">
+                  <div class="input-group-append">
+                    <button id="btnModalInstallMold" class="btn btn-sm btn-warning" style="margin-left:5px" data-dismiss="modal">确认&提交</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> <!--结束modal-body-->
+        </div> <!--结束modal-content-->
+      </div> <!--结束modal-dialog modal-xl-->
+    </div> <!--结束modal fade-->
+    <!--模态框结束-->
+
+    <!--模态框开始-->
+    <div id="modalUninstallMold" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered modal-xl"><!-- model-fullscreen modal-xl/style="max-width:100%"-->
+        <div class="modal-content" style="width:100%"><!-- style="width:100%"-->
+        
+          <div class="modal-header">
+            <h4 class="modal-title">下模信息填写<input id="rowUninstallMold" type="number" style="border:0;outline:0" disabled></h4>
+            <button class="close" data-dismiss="modal">&times;</button>
+          </div>
+          
+          <div class="modal-body">
+          
+            <div class="row" style="border:dashed 0.01rem">
+            
+              <div class="col">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">模具号</span>
+                  </div>
+                  <input type="text" id="moldNoUninstall" class="form-control" placeholder="输入模具号">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">机台号</span>
+                  </div>
+                  <select class="form-control selectpicker" data-style="btn-outline-danger" data-none-selected-text="选择……" data-size="5" data-live-search="true" data-live-search-placeholder="搜索"  id="prodUninstallMachine">   
+                  </select>
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">备注</span>
+                  </div>
+                  <input type="text" id="uninstallRemark" class="form-control" value="NA" placeholder="输入备注">
+                  <div class="input-group-append">
+                    <button id="btnModalUninstallMold" class="btn btn-sm btn-warning" style="margin-left:5px" data-dismiss="modal">确认&提交</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> <!--结束modal-body-->
+        </div> <!--结束modal-content-->
+      </div> <!--结束modal-dialog modal-xl-->
+    </div> <!--结束modal fade-->
+    <!--模态框结束-->
+
+    <!--模态框开始-->
+    <div id="modalInWarehouse" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered modal-xl"><!-- model-fullscreen modal-xl/style="max-width:100%"-->
+        <div class="modal-content" style="width:100%"><!-- style="width:100%"-->
+        
+          <div class="modal-header">
+            <h4 class="modal-title">入库信息填写<input id="rowInWarehouse" type="number" style="border:0;outline:0" disabled></h4>
+            <button class="close" data-dismiss="modal">&times;</button>
+          </div>
+          
+          <div class="modal-body">
+          
+            <div class="row" style="border:dashed 0.01rem">
+            
+              <div class="col">
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">模具号</span>
+                  </div>
+                  <input type="text" id="moldNoInWarehouse" class="form-control" placeholder="输入模具号">
+                  <div class="input-group-append">
+                    <button id="btnModalInWarehouse" class="btn btn-sm btn-warning" style="margin-left:5px" data-dismiss="modal">确认&提交</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> <!--结束modal-body-->
+        </div> <!--结束modal-content-->
+      </div> <!--结束modal-dialog modal-xl-->
+    </div> <!--结束modal fade-->
+    <!--模态框结束-->
+    
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.6.11/core.js" integrity="sha512-bPWjE2HtaVknpnoisaVW0eeFg8H4ApahJn++J7hd0fhdtZ5ZF5lkbd/DzxNfqT87CWxWJB34jDAvIokZp+6ENA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.19.0/sweetalert2.all.js" integrity="sha512-sKTPG2ghaE73Rg/+qcfRfZvZNez1y+57bN0TArz0TLhGx8BtY657lqZrFnxyj2LAh/iV9F4v8aMLxt1Q1zgmUQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js" integrity="sha512-WNLxfP/8cVYL9sj8Jnp6et0BkubLP31jhTG9vhL/F5uEZmg5wEzKoXp1kJslzPQWwPT1eyMiSxlKCgzHLOTOTQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.4/dayjs.min.js" integrity="sha512-0fcCRl828lBlrSCa8QJY51mtNqTcHxabaXVLPgw/jPA5Nutujh6CbTdDgRzl9aSPYW/uuE7c4SffFUQFBAy6lg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js" integrity="sha512-ubuT8Z88WxezgSqf3RLuNi5lmjstiJcyezx34yIU2gAHonIi27Na7atqzUZCOoY4CExaoFumzOsFQ2Ch+I/HCw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.min.js" integrity="sha512-8qmis31OQi6hIRgvkht0s6mCOittjMa9GMqtK9hes5iEQBQE/Ca6yGE5FsW36vyipGoWQswBj/QBm2JR086Rkw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" integrity="sha512-T/tUfKSV1bihCnd+MxKD0Hm1uBBroVYBOYSk1knyvQ9VyZJpc/ALb4P0r6ubwVPSGB2GvjeoMAJJImBG12TiaQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.zh-CN.min.js" integrity="sha512-iDxVNnhHWKfWPm0vWzbiXqosxX8loK3oRcMg+QAlaDeLDi1HcUo96+xAVkgPI5JRR1SXN3aMQsMN1dB8H/Subg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js" integrity="sha512-yDlE7vpGDP7o2eftkCiPZ+yuUyEcaBwoJoIhdXv71KZWugFqEphIS3PU60lEkFaz8RxaVsMpSvQxMBaKVwA5xg==" crossorigin="anonymous"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+    <?!=include("zj_Integrated_js");?>
+<script>
+  console.log("[SSO] loginId=<?!= ssoLoginId ?> loginName=<?!= ssoLoginName ?> loginWorkshop=<?!= ssoLoginWorkshop ?> loginProcess=<?!= ssoLoginProcess ?>");
+  (function(){
+    var ssoId = "<?!= ssoLoginId ?>";
+    if (ssoId) {
+      sessionStorage.setItem("sessionLoginId", ssoId);
+      sessionStorage.setItem("sessionLoginName", "<?!= ssoLoginName ?>");
+      sessionStorage.setItem("sessionLoginWorkshop", "<?!= ssoLoginWorkshop ?>");
+      sessionStorage.setItem("sessionLoginProcess", "<?!= ssoLoginProcess ?>");
+      console.log("[SSO] sessionStorage populated OK");
+    } else {
+      console.log("[SSO] skipped - loginId is empty");
+    }
+  })();
+</script>
+    <?!=include("ChangeOver_Script");?>    
+   
+  </body>
+</html>

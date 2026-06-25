@@ -1,0 +1,233 @@
+<script>  
+    
+  /***禁用鼠标右键***/
+  window.onload=function(){       
+    document.onkeydown=function(){
+      let e=window.event||arguments[0];
+      if(e.keyCode==123){         
+        return false;
+      }
+      else if((e.ctrlKey)&&(e.shiftKey)&&(e.keyCode==73)){
+        return false;
+      }
+    }
+    document.oncontextmenu=function(){
+      return false;
+    }
+  }
+
+  let deployWebUrl="";
+  let timerInterval;
+
+  /***打开后台数据表***/
+  $("#moldManagementRcordSpreadsheet").on("dblclick",async function(){
+    let { value: text } = await Swal.fire({
+      allowOutsideClick:false,
+      title:'验证权限',
+      input: 'password',
+      inputValue:"",
+      inputPlaceholder: '请输入权限密码……',
+      inputAttributes: {
+        'aria-label': '验证权限'
+      },
+      showCancelButton: true
+    })
+    if(text){
+      if (text=="38416") {
+        window.open("https://docs.google.com/spreadsheets/d/1tnpYdn-B_rQGS5bjWtDBBVtPv9n8_f9MCx8j55j6q0U/");
+      }
+      else{
+        Swal.fire({allowOutsideClick:false,icon:'error',title:'友情提醒',text:'验证失败：你没有权限',showConfirmButton:false,timer:1500});
+      }
+    }
+  })
+  
+  /***加载窗口时预载数据***/
+  $(document).ready(function(){
+    showRunning('','正在加载页面信息……','','',120000);
+    google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+      deployWebUrl=result;
+      console.log({"网址":deployWebUrl});
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        for (let i = 0; i < result.length; i++) {
+          localStorage.setItem("trialProduction_"+result[i][0],result[i][1]);
+        }
+        showResult('success','页面信息加载成功','','',false,'',2000,true);
+      }).getUserInfo();
+    }).getDeployWebUrl();
+  });
+  
+  /***LoginID变更时，触发程序***/
+  $("#loginId").on("change",function(){
+    idToName();
+  });
+  
+  /***加载窗口时预载数据***/
+  function idToName(){ 
+    let sapid =document.getElementById("loginId").value;     
+    if (sapid.length!==5){
+      document.getElementById("loginName").value="";
+      Swal.fire({allowOutsideClick:false,icon:'info',title:'友情提醒',text:'输入5位工号'});
+    }
+    else{
+      let thisUserInfo=localStorage.getItem("trialProduction_"+sapid);
+      console.log({"用户信息":thisUserInfo})
+      if(!thisUserInfo){
+        document.getElementById("loginName").value="";
+        Swal.fire({allowOutsideClick:false,icon:'info',title:'友情提醒',text:'查无此人'});
+      }
+      else{
+        let name=thisUserInfo.split("【|】")[0];
+        document.getElementById("loginName").value=name;
+      }
+    }
+  }
+
+  /***维修登录***/
+  $("#btnRepair").on("click",function(){
+    let loginId=$("#loginId").val();
+    let loginName=$("#loginName").val();
+    let loginWorkshop=$("#loginWorkshop").val();
+    if(loginName&&loginWorkshop){
+      sessionStorage.setItem("sessionLoginId",loginId);
+      sessionStorage.setItem("sessionLoginName",loginName);
+      sessionStorage.setItem("sessionLoginWorkshop",loginWorkshop);
+      sessionStorage.setItem("sessionLoginProcess","INJ");
+      window.open(deployWebUrl+"?v=Repair");
+    }
+    else{
+      Swal.fire({allowOutsideClick:false,icon:'info',title:'友情提醒',text:'姓名与车间不可为空'});
+    }
+  });
+
+  /***保养登录***/
+  $("#btnMaintenance").on("click",function(){
+    let loginId=$("#loginId").val();
+    let loginName=$("#loginName").val();
+    let loginWorkshop=$("#loginWorkshop").val();
+    if(loginName&&loginWorkshop){
+      sessionStorage.setItem("sessionLoginId",loginId);
+      sessionStorage.setItem("sessionLoginName",loginName);
+      sessionStorage.setItem("sessionLoginWorkshop",loginWorkshop);
+      sessionStorage.setItem("sessionLoginProcess","INJ");
+      window.open(deployWebUrl+"?v=Maintenance");
+    }
+    else{
+      Swal.fire({allowOutsideClick:false,icon:'info',title:'友情提醒',text:'姓名与车间不可为空'});
+    }
+  });
+  
+  /***测试登录***/
+  $("#btnTest").on("click",function(){
+    let loginId=$("#loginId").val();
+    let loginName=$("#loginName").val();
+    let loginWorkshop=$("#loginWorkshop").val();
+    if(loginName&&loginWorkshop){
+      sessionStorage.setItem("sessionLoginId",loginId);
+      sessionStorage.setItem("sessionLoginName",loginName);
+      sessionStorage.setItem("sessionLoginWorkshop",loginWorkshop);
+      sessionStorage.setItem("sessionLoginProcess","INJ");
+      window.open(deployWebUrl+"?v=Test");
+    }
+    else{
+      Swal.fire({allowOutsideClick:false,icon:'info',title:'友情提醒',text:'姓名与车间不可为空'});
+    }
+  });
+
+  /***转规格登录***/
+  $("#btnChangeOver").on("click",function(){
+    let loginId=$("#loginId").val();
+    let loginName=$("#loginName").val();
+    let loginWorkshop=$("#loginWorkshop").val();
+    if(loginName&&loginWorkshop){
+      sessionStorage.setItem("sessionLoginId",loginId);
+      sessionStorage.setItem("sessionLoginName",loginName);
+      sessionStorage.setItem("sessionLoginWorkshop",loginWorkshop);
+      sessionStorage.setItem("sessionLoginProcess","INJ");
+      window.open(deployWebUrl+"?v=ChangeOver");
+    }
+    else{
+      Swal.fire({allowOutsideClick:false,icon:'info',title:'友情提醒',text:'姓名与车间不可为空'});
+    }
+  });
+
+  /***打开Script***/
+  $("#thisScript").on("dblclick",async function(){
+    let { value: text } = await Swal.fire({
+      allowOutsideClick:false,
+      title:'验证权限',
+      input: 'password',
+      inputValue:"",
+      inputPlaceholder: '请输入权限密码……',
+      inputAttributes: {
+        'aria-label': '验证权限'
+      },
+      showCancelButton: true
+    })
+    if(text){
+      if (text=="38416") {
+        window.open("https://script.google.com/home/projects/1P8jt3mG9eHpqfRwOuK-qUMdKuT4zijqXM-0pPHo3eIaPfBbART_kh1FK/");
+      }
+      else{
+        Swal.fire({allowOutsideClick:false,icon:'error',title:'友情提醒',text:'验证失败：你没有权限',showConfirmButton:false,timer:1500});
+      }
+    }
+  })
+  
+  
+  /***显示过程提示信息***/
+  function showRunning(strIcon,strTitle,strText,strFooter,times){
+    if(timerInterval){clearInterval(timerInterval)}
+    Swal.fire({
+      position: 'center',
+      allowOutsideClick:false,
+      icon:strIcon,
+      title:strTitle,
+      text:strText,
+      html: '窗口将在 <b></b> 秒内关闭',
+      showConfirmButton:false,
+      footer:strFooter,
+      timer: times,
+      timerProgressBar: true,
+      didOpen: () => {
+        // Swal.showLoading()
+        let b = Swal.getHtmlContainer().querySelector('b')
+        timerInterval = setInterval(() => {
+          if(b){
+            b.textContent = (Swal.getTimerLeft()/1000).toFixed(0);
+          }
+        }, 1000)
+      },
+      willClose:()=>{
+        if(timerInterval){clearInterval(timerInterval)}
+      }
+    }).then((result) => {
+      if (result.dismiss === Swal.DismissReason.timer) {
+        Swal.fire("程序在"+times/60000+"分钟内未响应","尝试再来一次");
+      }
+    })
+  }
+
+  /***显示结果提示信息***/
+  function showResult(strIcon,strTitle,strText,strHtml,booleanButton,strFooter,times,booleanTimerProgressBar){
+    if(timerInterval){clearInterval(timerInterval)}
+    Swal.fire({
+      position: 'center',
+      allowOutsideClick:false,
+      icon:strIcon,
+      title:strTitle,
+      text:strText,
+      html: strHtml,
+      showConfirmButton:booleanButton,
+      footer:strFooter,
+      timer: times,
+      timerProgressBar: booleanTimerProgressBar
+    })
+  }
+
+  /***后台无响应时返回错误信息***/
+  function judgeFailure(){
+    Swal.fire("服务器未响应","尝试再来一次");
+  }
+  
+</script>

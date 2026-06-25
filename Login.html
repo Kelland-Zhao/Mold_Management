@@ -1,0 +1,106 @@
+<!DOCTYPE html>   
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/css/bootstrap.min.css" integrity="sha512-oc9+XSs1H243/FRN9Rw62Fn8EtxjEYWHXRvjS43YtueEewbS6ObfXcJNyohjHqVKFPoXXUxwc+q1K7Dee6vv9g==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" integrity="sha512-mSYUmp1HYZDFaVKK//63EcZq4iFWFjxSL+Z3T/aCt4IO9Cejm03q3NKKYN6pFQzY0SBOr8h+eCIAZHPXcpZaNw==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css" integrity="sha512-ARJR74swou2y0Q2V9k0GbzQ/5vJ2RBSoCWokg4zkfM29Fb3vZEQyv0iWBMW/yvKgyHSR/7D64pFMmU8nYmbRkg==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous" /> -->
+    <!-- <script src="https://kit.fontawesome.com/f6353ffdae.js" crossorigin="anonymous"></script> -->
+    <?!=include("zj_Integrated_css");?>
+    <?!=include("Login_CSS");?>                 
+  </head>
+  <body>  
+    <div class="container">
+      <div class="login_box">
+        <h1 id="moldManagementRcordSpreadsheet" class="text-center" style="background-color:rgb(218,41,28);color:white">
+          注塑模具管理
+        </h1>
+
+        <div class="row">
+
+          <div class="col-5 offset-1">
+
+            <div class="row" style="margin-top:calc((100vh - 400px) * 0.4)">   <!-- style="margin-top:60px" -->
+              <div class="col">
+                <div class="input-group">
+                  <div class="input-group-append">
+                    <span class="input-group-text" style="font-size:24px"><b>姓名：</b></span>
+                  </div>
+                  <input class="form-control" placeholder="自动生成，无需填写" id="loginName" type="text" style="background:unset;text-align:center;font-size:24px"  value="<?!=paraTemp1?>" disabled>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:125px">   <!-- style="margin-top:125px" -->
+              <div class="col">
+                <div class="input-group">
+                  <div class="input-group-append">
+                    <span class="input-group-text" style="font-size:24px"><b>工号：</b></span>
+                    <span class="input-group-text" style="font-size:24px"><b>328</b></span>
+                  </div>
+                  <input class="form-control zjInputText" placeholder="输入工号……" id="loginId" type="text" inputmode='numeric' oninput='value=value.replace(/[^\d]/g,"")' maxlength="5" style="text-align:center;font-size:24px;background:unset" value="<?!=paraTemp2?>">
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:125px;margin-bottom:calc((100vh - 400px) * 0.4)">   <!-- style="margin-top:125px;margin-bottom:60px" -->
+              <div class="col">
+                <div class="input-group">
+                  <div class="input-group-append">
+                    <span class="input-group-text" style="font-size:24px"><b>车间：</b></span>
+                  </div>
+                  <select id="loginWorkshop" class="form-control selectpicker" data-none-selected-text="选择车间……">
+                    <option value="" style="color:red" selected disabled>选择车间……</option>
+                    <option style="background:#0000FF;color:#fff;">TB1</option>
+                    <option style="background:#00FF00;color:#fff;">TB2</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+
+          <div class="col">
+
+            <div class="row" style="margin-top:calc((100vh - 400px) * 0.4)">   <!-- style="margin-top:60px" -->
+              <div class="col">
+                <ul class='zjpie'>
+                  <li class='zjslice-one zjslice' id="btnRepair"><b class="zjslicetext-one zjglint">维修</b></li> 
+                  <li class='zjslice-two zjslice' id="btnMaintenance"><b class="zjslicetext-two zjglint">保养</b></li>
+                  <li class='zjslice-three zjslice' id="btnTest"><b class="zjslicetext-three zjglint">测试</b></li>
+                  <li class='zjcenter zjslice' id="btnChangeOver"><b class="zjcentertext zjglint">转规格</b></li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        
+        </div>
+
+        <div class="row">   <!-- style="margin-top:600px" -->
+          <div class="col">
+            <h6 class="text-center" style="color:#888888">
+              Copyright © 2022 CSX & &nbsp<img id="thisScript" src="https://lh3.googleusercontent.com/u/0/d/1HFebZnQEz3ozrLJVkDdIFzg_Sbl_Qw_v" alt="Jin Zhang" width="1%" style="vertical-align:middle;opacity:0.3">&nbsp All Rights Reserved
+            </h6>
+          </div>
+        </div>
+        
+      </div> 
+      
+    </div>   <!--结束container--> 
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/core-js/2.6.11/core.js" integrity="sha512-bPWjE2HtaVknpnoisaVW0eeFg8H4ApahJn++J7hd0fhdtZ5ZF5lkbd/DzxNfqT87CWxWJB34jDAvIokZp+6ENA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.19.0/sweetalert2.all.js" integrity="sha512-sKTPG2ghaE73Rg/+qcfRfZvZNez1y+57bN0TArz0TLhGx8BtY657lqZrFnxyj2LAh/iV9F4v8aMLxt1Q1zgmUQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js" integrity="sha512-WNLxfP/8cVYL9sj8Jnp6et0BkubLP31jhTG9vhL/F5uEZmg5wEzKoXp1kJslzPQWwPT1eyMiSxlKCgzHLOTOTQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.4/dayjs.min.js" integrity="sha512-0fcCRl828lBlrSCa8QJY51mtNqTcHxabaXVLPgw/jPA5Nutujh6CbTdDgRzl9aSPYW/uuE7c4SffFUQFBAy6lg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js" integrity="sha512-ubuT8Z88WxezgSqf3RLuNi5lmjstiJcyezx34yIU2gAHonIi27Na7atqzUZCOoY4CExaoFumzOsFQ2Ch+I/HCw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.min.js" integrity="sha512-8qmis31OQi6hIRgvkht0s6mCOittjMa9GMqtK9hes5iEQBQE/Ca6yGE5FsW36vyipGoWQswBj/QBm2JR086Rkw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" integrity="sha512-T/tUfKSV1bihCnd+MxKD0Hm1uBBroVYBOYSk1knyvQ9VyZJpc/ALb4P0r6ubwVPSGB2GvjeoMAJJImBG12TiaQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.zh-CN.min.js" integrity="sha512-iDxVNnhHWKfWPm0vWzbiXqosxX8loK3oRcMg+QAlaDeLDi1HcUo96+xAVkgPI5JRR1SXN3aMQsMN1dB8H/Subg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js" integrity="sha512-yDlE7vpGDP7o2eftkCiPZ+yuUyEcaBwoJoIhdXv71KZWugFqEphIS3PU60lEkFaz8RxaVsMpSvQxMBaKVwA5xg==" crossorigin="anonymous"></script> -->
+    <?!=include("zj_Integrated_js");?>
+    <?!=include("Login_Script");?>    
+  </body>
+</html>

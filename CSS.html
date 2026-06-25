@@ -1,0 +1,67 @@
+<style>
+
+  br{
+    display:inline;
+    line-height: 100px;
+  }
+  
+  /* .filter-option {
+    font-size: small !important;
+  } */
+
+  .container{       
+    max-width:100%;
+    width:98%
+  }
+
+  /*自定义class：表格中input的属性*/
+  .tabInputNone{
+    resize:none;
+    border-left:none;
+    border-top:none;
+    border-right:none;
+    border-bottom:none;
+    background-color:unset;
+    outline:none;
+    text-align:center;
+    width:100%;
+    /*height:15px;
+    line-height:15px;*/
+  }
+
+  
+  /*自定义class：模态框表格*/
+  .trialTable {
+    width:100%;
+    margin:auto;
+    overflow-y:scroll;
+    position: sticky;
+  }
+  
+  .trialTable td,th{ /*设置行高*/
+    margin:0px;
+    padding:0px;
+    height:30px;
+  }
+  
+  .trialTable thead tr th{ /* 冻结抬头 */
+    position:sticky;
+    top:0px;
+    z-index:2;
+    background-color:whitesmoke;
+  }
+  
+  /*.trialTable table tr:nth-child(2n+1){background-color:#F2F2F2;}*/
+
+  .trialTable table tr:hover{ /*设置鼠标停在某行时的背景色*/
+    position:sticky;
+    z-index:4;
+    background-color:red;
+    transition:.2s;
+  }
+
+  .navbar {
+    background-color: #E60012;
+  }
+  
+</style>

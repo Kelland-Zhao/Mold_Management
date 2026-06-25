@@ -1,0 +1,513 @@
+<script>
+  
+  /***禁用鼠标右键***/
+  window.onload=function(){       
+    document.onkeydown=function(){
+      let e=window.event||arguments[0];
+      if(e.keyCode==123){         
+        return false;
+      }
+      else if((e.ctrlKey)&&(e.shiftKey)&&(e.keyCode==73)){
+        return false;
+      }
+    }
+    document.oncontextmenu=function(){
+      return false;
+    }
+  }
+
+  let timerInterval,timerIntervalFile;
+  let arrAem=[];
+  let arrMoldInfoScan=[];
+
+  /***初始化日期选择器***/
+  function initializationDatePicker(){
+    $('.data-datepicker').datepicker({
+      "language": "zh-CN",
+      "calendarWeeks": true,
+      "todayHighlight": true
+    });
+  }
+  
+  /***加载窗口时预载数据***/
+  $(document).ready(function(){
+    initializationDatePicker();
+    let loginWorkshop=sessionStorage.getItem("sessionLoginWorkshop");
+    let loginProcess=sessionStorage.getItem("sessionLoginProcess");
+    let loginId=sessionStorage.getItem("sessionLoginId");
+    let loginName=sessionStorage.getItem("sessionLoginName");
+    $("#loginWorkshop").text(loginWorkshop);
+    $("#loginProcess").text(loginProcess);
+    $("#loginId").text(loginId);
+    $("#loginName").text(loginName);
+    if(loginWorkshop&&loginProcess&&loginId&&loginName){
+      showRunning('','正在加载机台信息……','','',120000);
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        if(result[0]=="OK"){
+          arrAem=result[1];
+          let secTemp=$("#prodInstallMachine");
+          dynamicGenerationSelectOption(secTemp,arrAem);
+          secTemp=$("#prodUninstallMachine");
+          dynamicGenerationSelectOption(secTemp,arrAem);
+          showResult('success','机台计划加载成功','','',false,'',2000,true)
+        }
+        else{
+          showResult('error','机台计划加载失败',result[1],'',true,'','',false);
+        }
+      }).getAem(loginWorkshop,loginProcess);
+    }
+    else{
+      showResult('error','缺失登陆信息','尝试关闭窗口重新登陆','',true,'','',false);
+    }
+  });
+
+  /***点击确认并获取转规格数据***/
+  $("#btnConfirmCo").on("click",function(){
+    let prodDate=$("#prodDate").val();
+    if(prodDate!=""){
+      showRunning('','正在加载转规格信息……','','',120000);
+      let loginWorkshop=$("#loginWorkshop").text().trim();
+      let loginProcess=$("#loginProcess").text().trim()
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        if(result[0]=="OK"){
+          let arrCoInfo=result[1];
+          let tbody=$("#tbodyCoInfo");
+          let tbodyRows=tbody.find("tr").length;
+          if(tbodyRows>0){
+            for(let i=tbodyRows-1;i>-1;i--){
+              tbody.find("tr").eq(i).remove()
+            }
+          }
+          let rowStr="";
+          for(let i=0;i<arrCoInfo.length;i++){
+            rowStr='<tr>'+
+                      '<td>'+arrCoInfo[i][0]+'</td>'+
+                      '<td>'+arrCoInfo[i][1]+'</td>'+
+                      '<td>'+arrCoInfo[i][2]+'</td>'+
+                      '<td>'+arrCoInfo[i][3]+'</td>'+
+                      '<td>'+arrCoInfo[i][4]+'</td>'+
+                      '<td>'+arrCoInfo[i][5]+'</td>'+
+                      '<td>'+arrCoInfo[i][6]+'</td>'+
+                      '<td>'+arrCoInfo[i][7]+'</td>'+
+                      '<td>'+arrCoInfo[i][8]+'</td>'+
+                      '<td>'+"<div class='row'>"+
+                                "<div class='col' style='padding-right:1px'>"+
+                                  "<button class='form-control btn-sm btn-primary' style='width:100%;height:100%;margin:0px;padding:0px;font-size:small' onclick='btnOutWarehouse(this)'>出库</button>"+
+                                "</div>"+
+                                "<div class='col' style='padding-left:1px'>"+
+                                  "<button class='form-control btn-sm btn-info' style='width:100%;height:100%;margin:0px;padding:0px;font-size:small' onclick='btnInstallMold(this)'>上模</button>"+
+                                "</div>"+
+                              "</div>"+
+                              "<div class='row' style='margin-top:5px'>"+
+                                 "<div class='col' style='padding-right:1px'>"+
+                                    "<button class='form-control btn-sm btn-success' style='width:100%;height:100%;margin:0px;padding:0px;font-size:small' onclick='btnUninstallMold(this)'>下模</button>"+
+                                 "</div>"+
+                                 "<div class='col' style='padding-left:1px'>"+
+                                    "<button class='form-control btn-sm btn-danger' style='width:100%;height:100%;margin:0px;padding:0px;font-size:small' onclick='btnInWarehouse(this)'>入库</button>"+
+                                 "</div>"+
+                               "</div>"+
+                      '</td>'+
+                    '</tr>'
+            tbody.append(rowStr);
+          }
+          showResult('success','转规格信息加载成功','','',false,'',2000,true)
+        }
+        else{
+          showResult('error','转规格信息加载失败',result[1],'',true,'','',false);
+        }
+      }).getCoInfo(loginWorkshop,loginProcess,prodDate);
+    }
+    else{
+      showResult('error','缺失日期','请输入日期','',true,'','',false);
+    }
+  })
+
+  /***出库***/
+  function btnOutWarehouse(obj){
+    arrMolarrMoldInfo=[];
+    let objRow=$(obj).parent().parent().parent().parent().index();
+    $("#rowOutWarehouse").val(objRow);
+    $("#moldNoOutWarehouse").val("")
+    $("#modalOutWarehouse").modal('show');
+  }
+
+  $("#moldNoOutWarehouse").on("input",function(){
+    arrMoldInfoScan=[];
+    let inputVal=$("#moldNoOutWarehouse").val().replace(/[\n\r]/g,"");
+    if(inputVal.length>8&&inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
+      let arrInputVal=inputVal.trim().substring(inputVal.trim().search("模具名称"),inputVal.trim().length).split(/模具名称[：:]|模具号[：:]|产品名称[：:]|模具步骤[：:]/).filter(v=>v!="").map(v=>v.trim());
+      arrMoldInfoScan=arrInputVal;
+      let htmlStr="<p>模具名称：<b style='color:red'>"+arrInputVal[0]+"</b></p>"+
+                  "<p>模具号：<b style='color:red'>"+arrInputVal[1]+"</b></p>"+
+                  "<p>产品名称：<b style='color:red'>"+arrInputVal[2]+"</b></p>"+
+                  "<p>模具步骤：<b style='color:red'>"+arrInputVal[3]+"</b></p>"
+      showResult('info','模具信息','',htmlStr,true,'','',false);
+      $("#moldNoOutWarehouse").val(arrInputVal[1]);
+    }
+  })
+
+  $("#moldNoOutWarehouse").on("blur",function(){
+    let inputVal=$("#moldNoOutWarehouse").val()
+    let judge=false;
+    if(inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
+      judge=(/M\dIM\d{4}/).test(inputVal);
+    }
+    else{
+      judge=(/^M\dIM\d{4}$/).test(inputVal);
+    }
+    if(inputVal!=""&&!judge){
+      showResult('error','模具号不对',inputVal,'',true,'','',false)
+      $("#moldNoOutWarehouse").val("")
+    }
+  })
+
+  $("#btnModalOutWarehouse").on("click",function(){
+    let rowOutWarehouse=$("#rowOutWarehouse").val();
+    let moldNoOutWarehouse=$("#moldNoOutWarehouse").val();
+    if(arrMoldInfoScan.length==4){
+      if(moldNoInWarehouse!=""){
+        let tbody=$("#tbodyCoInfo");
+        let tbodyRow=tbody.find("tr").eq(rowOutWarehouse).find("td");
+        let loginWorkshop=$("#loginWorkshop").text().trim();
+        let loginProcess=$("#loginProcess").text().trim();
+        let loginName=$("#loginName").text().trim();
+        let outDate=tbodyRow.eq(0).text().trim();
+        let outShift=tbodyRow.eq(1).text().trim();
+        let coMachine=tbodyRow.eq(2).text().trim();
+        let coBeforeMoldNo=tbodyRow.eq(3).text().trim();
+        let coBeforeProduct=tbodyRow.eq(4).text().trim();
+        let coAfterMoldNo=tbodyRow.eq(5).text().trim()
+        let coAfterProduct=tbodyRow.eq(6).text().trim();
+        let coAfterStep=tbodyRow.eq(7).text().trim();
+        if(moldNoOutWarehouse==coAfterMoldNo&&arrMoldInfoScan[3]==coAfterStep){
+          showRunning('','正在保存出库信息……','','',120000);
+          google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+            arrMoldInfoScan=[];
+            if(result[0]=="OK"){
+              showResult('success','出库信息保存成功','','',false,'',2000,true)
+            }
+            else{
+              showResult('error','出库信息保存失败',result[1],'',true,'','',false);
+            }
+          }).saveOutWarehouse(loginWorkshop,loginProcess,outDate,outShift,coMachine,coBeforeMoldNo,coBeforeProduct,moldNoOutWarehouse,coAfterProduct,loginName,arrMoldInfoScan);
+        }
+        else{
+          showResult('error','出库模具与计划不一致','','',true,'','',false);
+        }
+      }
+    }
+    else{
+      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+    }
+  })
+
+  /***上模***/
+  function btnInstallMold(obj){
+    arrMolarrMoldInfo=[];
+    let objRow=$(obj).parent().parent().parent().parent().index();
+    $("#rowInstallMold").val(objRow);
+    $("#moldNoInstall").val("")
+    $("#modalInstallMold").modal('show');
+  }
+
+  $("#moldNoInstall").on("input",function(){
+    arrMoldInfoScan=[];
+    let inputVal=$("#moldNoInstall").val().replace(/[\n\r]/g,"");
+    if(inputVal.length>8&&inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
+      let arrInputVal=inputVal.trim().substring(inputVal.trim().search("模具名称"),inputVal.trim().length).split(/模具名称[：:]|模具号[：:]|产品名称[：:]|模具步骤[：:]/).filter(v=>v!="").map(v=>v.trim());
+      arrMoldInfoScan=arrInputVal;
+      let htmlStr="<p>模具名称：<b style='color:red'>"+arrInputVal[0]+"</b></p>"+
+                  "<p>模具号：<b style='color:red'>"+arrInputVal[1]+"</b></p>"+
+                  "<p>产品名称：<b style='color:red'>"+arrInputVal[2]+"</b></p>"+
+                  "<p>模具步骤：<b style='color:red'>"+arrInputVal[3]+"</b></p>"
+      showResult('info','模具信息','',htmlStr,true,'','',false);
+      $("#moldNoInstall").val(arrInputVal[1]);
+    }
+  })
+
+  $("#moldNoInstall").on("blur",function(){
+    let inputVal=$("#moldNoInstall").val()
+    let judge=false;
+    if(inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
+      judge=(/M\dIM\d{4}/).test(inputVal);
+    }
+    else{
+      judge=(/^M\dIM\d{4}$/).test(inputVal);
+    }
+    if(inputVal!=""&&!judge){
+      showResult('error','模具号不对',inputVal,'',true,'','',false)
+      $("#moldNoInstall").val("")
+    }
+  })
+
+  $("#btnModalInstallMold").on("click",function(){
+    let rowInstallMold=$("#rowInstallMold").val();
+    let moldNoInstall=$("#moldNoInstall").val();
+    let installMachine=$("#prodInstallMachine").val();
+    let installRemark=$("#installRemark").val();
+    if(arrMoldInfoScan.length==4){
+      let tbody=$("#tbodyCoInfo");
+      let tbodyRow=tbody.find("tr").eq(rowInstallMold).find("td");
+      let loginWorkshop=$("#loginWorkshop").text().trim();
+      let loginProcess=$("#loginProcess").text().trim();
+      let loginName=$("#loginName").text().trim();
+      let outDate=tbodyRow.eq(0).text().trim();
+      let outShift=tbodyRow.eq(1).text().trim();
+      let coMachine=tbodyRow.eq(2).text().trim();
+      let coBeforeMoldNo=tbodyRow.eq(3).text().trim();
+      let coBeforeProduct=tbodyRow.eq(4).text().trim();
+      let coAfterMoldNo=tbodyRow.eq(5).text().trim();
+      let coAfterProduct=tbodyRow.eq(6).text().trim();
+      let coAfterStep=tbodyRow.eq(7).text().trim();
+      console.log(installMachine,coMachine,moldNoInstall,coAfterMoldNo,arrMoldInfoScan[3],coAfterStep)
+      if(installMachine!=""&&installMachine==coMachine&&moldNoInstall!=""&&moldNoInstall==coAfterMoldNo&&arrMoldInfoScan[3]==coAfterStep){
+        if(coAfterMoldNo!=""){
+          showRunning('','正在保存上模信息……','','',120000);
+          google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+            if(result[0]=="OK"){
+              showResult('success','上模信息保存成功','','',false,'',2000,true)
+            }
+            else{
+              showResult('error','上模信息保存失败',result[1],'',true,'','',false);
+            }
+          }).saveInstallMold(loginWorkshop,loginProcess,outDate,outShift,coMachine,coBeforeMoldNo,coBeforeProduct,coAfterMoldNo,coAfterProduct,installMachine,loginName,arrMoldInfoScan,installRemark);
+        }
+        else{
+          showResult('error','转规格后模具号为空','确认已提交出库信息','',true,'','',false);
+        }
+      }
+      else{
+        showResult('error','机台信息错误','确认模具机台且与转规格计划一致','',true,'','',false);
+      }
+    }
+    else{
+      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+    }
+  })
+
+  /***下模***/
+  function btnUninstallMold(obj){
+    arrMolarrMoldInfo=[];
+    let objRow=$(obj).parent().parent().parent().parent().index();
+    $("#rowUninstallMold").val(objRow);
+    $("#moldNoUninstall").val("")
+    $("#modalUninstallMold").modal('show');
+  }
+
+  $("#moldNoUninstall").on("input",function(){
+    arrMoldInfoScan=[];
+    let inputVal=$("#moldNoUninstall").val().replace(/[\n\r]/g,"");
+    if(inputVal.length>8&&inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
+      let arrInputVal=inputVal.trim().substring(inputVal.trim().search("模具名称"),inputVal.trim().length).split(/模具名称[：:]|模具号[：:]|产品名称[：:]|模具步骤[：:]/).filter(v=>v!="").map(v=>v.trim());
+      arrMoldInfoScan=arrInputVal;
+      let htmlStr="<p>模具名称：<b style='color:red'>"+arrInputVal[0]+"</b></p>"+
+                  "<p>模具号：<b style='color:red'>"+arrInputVal[1]+"</b></p>"+
+                  "<p>产品名称：<b style='color:red'>"+arrInputVal[2]+"</b></p>"+
+                  "<p>模具步骤：<b style='color:red'>"+arrInputVal[3]+"</b></p>"
+      showResult('info','模具信息','',htmlStr,true,'','',false);
+      $("#moldNoUninstall").val(arrInputVal[1]);
+    }
+  })
+
+  $("#moldNoUninstall").on("blur",function(){
+    let inputVal=$("#moldNoUninstall").val()
+    let judge=false;
+    if(inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
+      judge=(/M\dIM\d{4}/).test(inputVal);
+    }
+    else{
+      judge=(/^M\dIM\d{4}$/).test(inputVal);
+    }
+    if(inputVal!=""&&!judge){
+      showResult('error','模具号不对',inputVal,'',true,'','',false)
+      $("#moldNoUninstall").val("")
+    }
+  })
+
+  $("#btnModalUninstallMold").on("click",function(){
+    let rowInstallMold=$("#rowUninstallMold").val();
+    let moldNoUninstall=$("#moldNoUninstall").val();
+    let uninstallMachine=$("#prodUninstallMachine").val();
+    let uninstallRemark=$("#uninstallRemark").val();
+    if(arrMoldInfoScan.length==4){
+      let tbody=$("#tbodyCoInfo");
+      let tbodyRow=tbody.find("tr").eq(rowInstallMold).find("td");
+      let loginWorkshop=$("#loginWorkshop").text().trim();
+      let loginProcess=$("#loginProcess").text().trim();
+      let loginName=$("#loginName").text().trim();
+      let outDate=tbodyRow.eq(0).text().trim();
+      let outShift=tbodyRow.eq(1).text().trim();
+      let coMachine=tbodyRow.eq(2).text().trim();
+      let coBeforeMoldNo=tbodyRow.eq(3).text().trim();
+      let coBeforeProduct=tbodyRow.eq(4).text().trim();
+      let coAfterMoldNo=tbodyRow.eq(5).text().trim();
+      let coAfterProduct=tbodyRow.eq(6).text().trim();
+      if(uninstallMachine!=""&&uninstallMachine==coMachine&&moldNoUninstall!=""&&moldNoUninstall==coBeforeMoldNo){
+        if(coBeforeMoldNo!=""){
+          showRunning('','正在保存下模信息……','','',120000);
+          google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+            if(result[0]=="OK"){
+              showResult('success','下模信息保存成功','','',false,'',2000,true)
+            }
+            else{
+              showResult('error','下模信息保存失败',result[1],'',true,'','',false);
+            }
+          }).saveUninstallMold(loginWorkshop,loginProcess,outDate,outShift,coMachine,coBeforeMoldNo,coBeforeProduct,coAfterMoldNo,coAfterProduct,uninstallMachine,loginName,arrMoldInfoScan,uninstallRemark);
+        }
+        else{
+          showResult('error','转规格前模具号为空','确认转规格信息','',true,'','',false);
+        }
+      }
+      else{
+        showResult('error','机台信息错误','确认模具机台且与转规格计划一致','',true,'','',false);
+      }
+    }
+    else{
+      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+    }
+  })
+
+  /***入库***/
+  function btnInWarehouse(obj){
+    arrMolarrMoldInfo=[];
+    let objRow=$(obj).parent().parent().parent().parent().index();
+    $("#rowInWarehouse").val(objRow);
+    $("#moldNoInWarehouse").val("")
+    $("#modalInWarehouse").modal('show');
+  }
+
+  $("#moldNoInWarehouse").on("input",function(){
+    let inputVal=$("#moldNoInWarehouse").val().replace(/[\n\r]/g,"");
+    if(inputVal.length>8&&inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
+      let arrInputVal=inputVal.trim().substring(inputVal.trim().search("模具名称"),inputVal.trim().length).split(/模具名称[：:]|模具号[：:]|产品名称[：:]|模具步骤[：:]/).filter(v=>v!="").map(v=>v.trim());
+      arrMoldInfoScan=arrInputVal
+      let htmlStr="<p>模具名称：<b style='color:red'>"+arrInputVal[0]+"</b></p>"+
+                  "<p>模具号：<b style='color:red'>"+arrInputVal[1]+"</b></p>"+
+                  "<p>产品名称：<b style='color:red'>"+arrInputVal[2]+"</b></p>"+
+                  "<p>模具步骤：<b style='color:red'>"+arrInputVal[3]+"</b></p>"
+      showResult('info','模具信息','',htmlStr,true,'','',false);
+      $("#moldNoInWarehouse").val(arrInputVal[1]);
+    }
+  })
+
+  $("#moldNoInWarehouse").on("change",function(){
+    let inputVal=$("#moldNoInWarehouse").val()
+    let judge=false;
+    if(inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
+      judge=(/M\dIM\d{4}/).test(inputVal);
+    }
+    else{
+      judge=(/^M\dIM\d{4}$/).test(inputVal);
+    }
+    if(inputVal!=""&&!judge){
+      showResult('error','模具号不对',inputVal,'',true,'','',false)
+      $("#moldNoInWarehouse").val("")
+    }
+  })
+
+  $("#btnModalInWarehouse").on("click",function(){
+    let rowInWarehouse=$("#rowInWarehouse").val();
+    let moldNoInWarehouse=$("#moldNoInWarehouse").val();
+    if(arrMoldInfoScan.length==4){
+      if(moldNoInWarehouse!=""){
+        let tbody=$("#tbodyCoInfo");
+        let tbodyRow=tbody.find("tr").eq(rowInWarehouse).find("td");
+        let loginWorkshop=$("#loginWorkshop").text().trim();
+        let loginProcess=$("#loginProcess").text().trim();
+        let loginName=$("#loginName").text().trim();
+        let inDate=tbodyRow.eq(0).text().trim();
+        let inShift=tbodyRow.eq(1).text().trim();
+        let coMachine=tbodyRow.eq(2).text().trim();
+        let coBeforeMoldNo=tbodyRow.eq(3).text().trim();
+        let coBeforeProduct=tbodyRow.eq(4).text().trim();
+        let coAfterMoldNo=tbodyRow.eq(5).text().trim();
+        let coAfterProduct=tbodyRow.eq(6).text().trim();
+        if(coBeforeMoldNo==moldNoInWarehouse){
+          showRunning('','正在保存入库信息……','','',120000);
+          google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+            arrMoldInfoScan=[];
+            if(result[0]=="OK"){
+              showResult('success','入库信息保存成功','','',false,'',2000,true)
+            }
+            else{
+              showResult('error','入库信息保存失败',result[1],'',true,'','',false);
+            }
+          }).saveInWarehouse(loginWorkshop,loginProcess,inDate,inShift,coMachine,coBeforeMoldNo,coBeforeProduct,moldNoInWarehouse,coAfterProduct,loginName,arrMoldInfoScan);
+        }
+        else{
+          showResult('error','入库模具与计划不一致','','',true,'','',false);
+        }
+      }
+    }
+    else{
+      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+    }
+  })
+
+  /***动态生成Select的Option项***/
+  function dynamicGenerationSelectOption(secTemp,arr){
+    secTemp.empty()
+    secTemp.append('<option value="" selected>Select……</option>');
+    for(let i=0;i<arr.length;i++){
+      secTemp.append('<option value="'+arr[i]+'">'+arr[i]+'</option>');
+    }
+    secTemp.selectpicker("val",[""]);
+    secTemp.selectpicker('refresh');
+  }
+
+  /***显示过程提示信息***/
+  function showRunning(strIcon,strTitle,strText,strFooter,times){
+    if(timerInterval){clearInterval(timerInterval)}
+    Swal.fire({
+      position: 'center',
+      allowOutsideClick:false,
+      icon:strIcon,
+      title:strTitle,
+      text:strText,
+      html: '窗口将在 <b></b> 秒内关闭',
+      showConfirmButton:false,
+      footer:strFooter,
+      timer: times,
+      timerProgressBar: true,
+      didOpen: () => {
+        // Swal.showLoading()
+        let b = Swal.getHtmlContainer().querySelector('b')
+        timerInterval = setInterval(() => {
+          if(b){
+            b.textContent = (Swal.getTimerLeft()/1000).toFixed(0);
+          }
+        }, 1000)
+      },
+      willClose:()=>{
+        if(timerInterval){clearInterval(timerInterval)}
+      }
+    }).then((result) => {
+      if (result.dismiss === Swal.DismissReason.timer) {
+        Swal.fire("程序在"+times/60000+"分钟内未响应","尝试再来一次");
+      }
+    })
+  }
+
+  /***显示结果提示信息***/
+  function showResult(strIcon,strTitle,strText,strHtml,booleanButton,strFooter,times,booleanTimerProgressBar){
+    if(timerInterval){clearInterval(timerInterval)}
+    Swal.fire({
+      position: 'center',
+      allowOutsideClick:false,
+      icon:strIcon,
+      title:strTitle,
+      text:strText,
+      html: strHtml,
+      showConfirmButton:booleanButton,
+      footer:strFooter,
+      timer: times,
+      timerProgressBar: booleanTimerProgressBar
+    })
+  }
+
+  /***后台无响应时返回错误信息***/
+  function judgeFailure(){
+    Swal.fire("服务器未响应","尝试再来一次");
+  }  
+  
+</script>
