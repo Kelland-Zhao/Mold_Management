@@ -119,7 +119,8 @@
           showResult('success','保养信息加载成功','','',false,'',2000,true)
         }
         else{
-          showResult('error','保养信息加载失败',result[1],'',true,'','',false);
+          let errMsg = result[1]==='未找到保养信息' ? '当日无相关保养信息' : result[1];
+          showResult('error','保养信息加载失败',errMsg,'',true,'','',false);
         }
       }).getPmInfo(loginWorkshop,loginProcess,prodDate);
     }
