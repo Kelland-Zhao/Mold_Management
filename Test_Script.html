@@ -1,5 +1,7 @@
 <script>
-  
+  const swalTitle = (cn, en) => `${cn}<span style="display:block;font-size:0.65em;color:#888;font-weight:400;line-height:1.3;margin-top:4px;">${en}</span>`;
+  const swalHtml = (cn, en) => `<div>${cn}<div style="font-size:0.85em;color:#888;margin-top:6px;line-height:1.4;">${en}</div></div>`;
+
   /***禁用鼠标右键***/
   window.onload=function(){       
     document.onkeydown=function(){
@@ -40,6 +42,7 @@
     $("#loginProcess").text(loginProcess);
     $("#loginId").text(loginId);
     $("#loginName").text(loginName);
+    $("#name").text(loginName);
     if(loginWorkshop&&loginProcess&&loginId&&loginName){
       showRunning('','正在加载机台信息……','','',120000);
       google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
@@ -206,12 +209,19 @@
   /***动态生成Select的Option项***/
   function dynamicGenerationSelectOption(secTemp,arr){
     secTemp.empty()
-    secTemp.append('<option value="" selected>Select……</option>');
+    secTemp.append('<option value="">Select……</option>');
     for(let i=0;i<arr.length;i++){
       secTemp.append('<option value="'+arr[i]+'">'+arr[i]+'</option>');
     }
-    secTemp.selectpicker("val",[""]);
-    secTemp.selectpicker('refresh');
+    if (secTemp.hasClass('select2-hidden-accessible')) {
+      secTemp.select2('destroy');
+    }
+    secTemp.select2({
+      theme: 'bootstrap',
+      placeholder: '选择…… / Select……',
+      allowClear: true,
+      width: '100%'
+    });
   }
 
   /***显示过程提示信息***/
@@ -221,16 +231,15 @@
       position: 'center',
       allowOutsideClick:false,
       icon:strIcon,
-      title:strTitle,
-      text:strText,
-      html: '窗口将在 <b></b> 秒内关闭',
+      title: swalTitle(strTitle, 'Loading...'),
+      html: swalHtml(strText || '窗口将在 <b></b> 秒内关闭', 'Window will close in <b></b> seconds'),
       showConfirmButton:false,
       footer:strFooter,
       timer: times,
       timerProgressBar: true,
       didOpen: () => {
-        // Swal.showLoading()
-        let b = Swal.getHtmlContainer().querySelector('b')
+        Swal.showLoading();
+        let b = Swal.getHtmlContainer().querySelector('b');
         timerInterval = setInterval(() => {
           if(b){
             b.textContent = (Swal.getTimerLeft()/1000).toFixed(0);
@@ -242,7 +251,11 @@
       }
     }).then((result) => {
       if (result.dismiss === Swal.DismissReason.timer) {
-        Swal.fire("程序在"+times/60000+"分钟内未响应","尝试再来一次");
+        Swal.fire({
+          icon: 'error',
+          title: swalTitle('超时', 'Timeout'),
+          html: swalHtml('程序在'+times/60000+'分钟内未响应，尝试再来一次', 'No response in '+times/60000+' min, please try again')
+        });
       }
     })
   }
@@ -254,9 +267,8 @@
       position: 'center',
       allowOutsideClick:false,
       icon:strIcon,
-      title:strTitle,
-      text:strText,
-      html: strHtml,
+      title: swalTitle(strTitle, ''),
+      html: strHtml || swalHtml(strText, ''),
       showConfirmButton:booleanButton,
       footer:strFooter,
       timer: times,
@@ -264,9 +276,13 @@
     })
   }
 
-  /***后台无响应时返回错误信息==========**/
+  /***后台无响应时返回错误信息***/
   function judgeFailure(){
-    Swal.fire("服务器未响应","尝试再来一次");
+    Swal.fire({
+      icon: 'error',
+      title: swalTitle('服务器未响应', 'Server Not Responding'),
+      html: swalHtml('尝试再来一次', 'Please try again')
+    });
   }  
   
 </script>

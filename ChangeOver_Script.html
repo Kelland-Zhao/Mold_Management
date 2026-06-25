@@ -1,5 +1,7 @@
 <script>
-  
+  const swalTitle = (cn, en) => `${cn}<span style="display:block;font-size:0.65em;color:#888;font-weight:400;line-height:1.3;margin-top:4px;">${en}</span>`;
+  const swalHtml = (cn, en) => `<div>${cn}<div style="font-size:0.85em;color:#888;margin-top:6px;line-height:1.4;">${en}</div></div>`;
+
   /***禁用鼠标右键***/
   window.onload=function(){       
     document.onkeydown=function(){
@@ -40,6 +42,13 @@
     $("#loginProcess").text(loginProcess);
     $("#loginId").text(loginId);
     $("#loginName").text(loginName);
+    $("#name").text(loginName);
+    // 日期默认当天
+    let today = new Date();
+    let yyyy = today.getFullYear();
+    let mm = String(today.getMonth() + 1).padStart(2, '0');
+    let dd = String(today.getDate()).padStart(2, '0');
+    $('#prodDate').val(yyyy + '-' + mm + '-' + dd);
     if(loginWorkshop&&loginProcess&&loginId&&loginName){
       showRunning('','正在加载机台信息……','','',120000);
       google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
@@ -92,18 +101,18 @@
                       '<td>'+arrCoInfo[i][8]+'</td>'+
                       '<td>'+"<div class='row'>"+
                                 "<div class='col' style='padding-right:1px'>"+
-                                  "<button class='form-control btn-sm btn-primary' style='width:100%;height:100%;margin:0px;padding:0px;font-size:small' onclick='btnOutWarehouse(this)'>出库</button>"+
+                                  "<button class='btn btn-sm btn-success w-100' style='font-size:small' onclick='btnOutWarehouse(this)'>出库</button>"+
                                 "</div>"+
                                 "<div class='col' style='padding-left:1px'>"+
-                                  "<button class='form-control btn-sm btn-info' style='width:100%;height:100%;margin:0px;padding:0px;font-size:small' onclick='btnInstallMold(this)'>上模</button>"+
+                                  "<button class='btn btn-sm btn-danger w-100' style='font-size:small' onclick='btnInstallMold(this)'>上模</button>"+
                                 "</div>"+
                               "</div>"+
                               "<div class='row' style='margin-top:5px'>"+
                                  "<div class='col' style='padding-right:1px'>"+
-                                    "<button class='form-control btn-sm btn-success' style='width:100%;height:100%;margin:0px;padding:0px;font-size:small' onclick='btnUninstallMold(this)'>下模</button>"+
+                                    "<button class='btn btn-sm btn-warning w-100' style='font-size:small' onclick='btnUninstallMold(this)'>下模</button>"+
                                  "</div>"+
                                  "<div class='col' style='padding-left:1px'>"+
-                                    "<button class='form-control btn-sm btn-danger' style='width:100%;height:100%;margin:0px;padding:0px;font-size:small' onclick='btnInWarehouse(this)'>入库</button>"+
+                                    "<button class='btn btn-sm btn-info w-100' style='font-size:small' onclick='btnInWarehouse(this)'>入库</button>"+
                                  "</div>"+
                                "</div>"+
                       '</td>'+
@@ -447,12 +456,19 @@
   /***动态生成Select的Option项***/
   function dynamicGenerationSelectOption(secTemp,arr){
     secTemp.empty()
-    secTemp.append('<option value="" selected>Select……</option>');
+    secTemp.append('<option value="">Select……</option>');
     for(let i=0;i<arr.length;i++){
       secTemp.append('<option value="'+arr[i]+'">'+arr[i]+'</option>');
     }
-    secTemp.selectpicker("val",[""]);
-    secTemp.selectpicker('refresh');
+    if (secTemp.hasClass('select2-hidden-accessible')) {
+      secTemp.select2('destroy');
+    }
+    secTemp.select2({
+      theme: 'bootstrap',
+      placeholder: '选择…… / Select……',
+      allowClear: true,
+      width: '100%'
+    });
   }
 
   /***显示过程提示信息***/
@@ -462,16 +478,15 @@
       position: 'center',
       allowOutsideClick:false,
       icon:strIcon,
-      title:strTitle,
-      text:strText,
-      html: '窗口将在 <b></b> 秒内关闭',
+      title: swalTitle(strTitle, 'Loading...'),
+      html: swalHtml(strText || '窗口将在 <b></b> 秒内关闭', 'Window will close in <b></b> seconds'),
       showConfirmButton:false,
       footer:strFooter,
       timer: times,
       timerProgressBar: true,
       didOpen: () => {
-        // Swal.showLoading()
-        let b = Swal.getHtmlContainer().querySelector('b')
+        Swal.showLoading();
+        let b = Swal.getHtmlContainer().querySelector('b');
         timerInterval = setInterval(() => {
           if(b){
             b.textContent = (Swal.getTimerLeft()/1000).toFixed(0);
@@ -483,7 +498,11 @@
       }
     }).then((result) => {
       if (result.dismiss === Swal.DismissReason.timer) {
-        Swal.fire("程序在"+times/60000+"分钟内未响应","尝试再来一次");
+        Swal.fire({
+          icon: 'error',
+          title: swalTitle('超时', 'Timeout'),
+          html: swalHtml('程序在'+times/60000+'分钟内未响应，尝试再来一次', 'No response in '+times/60000+' min, please try again')
+        });
       }
     })
   }
@@ -495,9 +514,8 @@
       position: 'center',
       allowOutsideClick:false,
       icon:strIcon,
-      title:strTitle,
-      text:strText,
-      html: strHtml,
+      title: swalTitle(strTitle, ''),
+      html: strHtml || swalHtml(strText, ''),
       showConfirmButton:booleanButton,
       footer:strFooter,
       timer: times,
@@ -507,7 +525,11 @@
 
   /***后台无响应时返回错误信息***/
   function judgeFailure(){
-    Swal.fire("服务器未响应","尝试再来一次");
+    Swal.fire({
+      icon: 'error',
+      title: swalTitle('服务器未响应', 'Server Not Responding'),
+      html: swalHtml('尝试再来一次', 'Please try again')
+    });
   }  
   
 </script>
