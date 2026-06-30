@@ -32,7 +32,54 @@
     });
   }
   
-  /**加载窗口时预载数据**/
+  /**渲染维修表格**/
+  function renderReTable(arrData){
+    let tbody=$("#tbodyReInfo");
+    tbody.empty();
+    let rowStr="";
+    for(let i=0;i<arrData.length;i++){
+      rowStr='<tr>'+
+              '<td>'+arrData[i][0]+'</td>'+
+              '<td>'+arrData[i][1]+'</td>'+
+              '<td>'+arrData[i][2]+'</td>'+
+              '<td>'+arrData[i][3]+'</td>'+
+              '<td>'+arrData[i][4]+'</td>'+
+              '<td>'+arrData[i][5]+'</td>'+
+              '<td>'+
+                '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'+
+                  '<button class="btn btn-info btn-table-action" onclick="btnInWarehouse(this)"><i class="bi bi-box-arrow-in-right"></i><span>入库</span><span>In</span></button>'+
+                  '<button class="btn btn-success btn-table-action" onclick="btnOutWarehouse(this)"><i class="bi bi-box-arrow-up-right"></i><span>出库</span><span>Out</span></button>'+
+                  '<button class="btn btn-danger btn-table-action" onclick="btnInstallMold(this)"><i class="bi bi-box-arrow-up"></i><span>上模</span><span>Install</span></button>'+
+                '</div>'+
+              '</td>'+
+            '</tr>'
+      tbody.append(rowStr);
+    }
+  }
+
+  /***加载维修表格数据***/
+  function loadReData(){
+    let loginWorkshop=$("#loginWorkshop").text().trim();
+    let loginProcess=$("#loginProcess").text().trim();
+    if(loginWorkshop&&loginProcess){
+      showRunning('','正在加载维修记录……','','',120000);
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        if(result[0]=="OK"){
+          renderReTable(result[1]);
+          showResult('success','维修记录加载成功','','',false,'',2000,true)
+        }
+        else{
+          $("#tbodyReInfo").empty();
+          showResult('info','暂无维修记录',result[1],'',true,'','',false);
+        }
+      }).getHistoryUninstall(loginWorkshop,loginProcess,"",[]);
+    }
+  }
+
+  /***刷新按钮***/
+  $("#btnRefreshRe").on("click",loadReData);
+
+  /***加载窗口时预载数据***/
   $(document).ready(function(){
     initializationDatePicker();
     let loginWorkshop=sessionStorage.getItem("sessionLoginWorkshop");
@@ -45,7 +92,8 @@
     $("#loginName").text(loginName);
     $("#name").text(loginName);
     if(loginWorkshop&&loginProcess&&loginId&&loginName){
-      showRunning('','正在加载机台信息……','','',120000);
+      // 一次性加载：先机台信息，再维修表格数据
+      showRunning('','正在加载数据……','','',120000);
       google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
         if(result[0]=="OK"){
           arrAem=result[1];
@@ -53,7 +101,17 @@
           dynamicGenerationSelectOption(secTemp,arrAem);
           secTemp=$("#prodUninstallMachine");
           dynamicGenerationSelectOption(secTemp,arrAem);
-          showResult('success','机台信息加载成功','','',false,'',2000,true)
+          // 链式加载维修表格
+          google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result2=>{
+            if(result2[0]=="OK"){
+              renderReTable(result2[1]);
+              showResult('success','数据加载完成','','',false,'',2000,true);
+            }
+            else{
+              $("#tbodyReInfo").empty();
+              showResult('info','暂无维修记录',result2[1],'',true,'','',false);
+            }
+          }).getHistoryUninstall(loginWorkshop,loginProcess,"",[]);
         }
         else{
           showResult('error','机台信息加载失败',result[1],'',true,'','',false);
@@ -111,28 +169,7 @@
         showRunning('','正在加载历史下模记录……','','',120000);
         google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
           if(result[0]=="OK"){
-            let arrData=result[1]
-            let rowStr="";
-            let tbody=$("#tbodyReInfo");
-            tbody.empty();
-            for(let i=0;i<arrData.length;i++){
-              rowStr='<tr>'+
-                        '<td>'+arrData[i][0]+'</td>'+
-                        '<td>'+arrData[i][1]+'</td>'+
-                        '<td>'+arrData[i][2]+'</td>'+
-                        '<td>'+arrData[i][3]+'</td>'+
-                        '<td>'+arrData[i][4]+'</td>'+
-                        '<td>'+arrData[i][5]+'</td>'+
-                        '<td>'+
-                          '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'+
-                            '<button class="btn btn-info btn-table-action" onclick="btnInWarehouse(this)"><i class="bi bi-box-arrow-in-right"></i>入库<br>In</button>'+
-                            '<button class="btn btn-success btn-table-action" onclick="btnOutWarehouse(this)"><i class="bi bi-box-arrow-up-right"></i>出库<br>Out</button>'+
-                            '<button class="btn btn-danger btn-table-action" onclick="btnInstallMold(this)"><i class="bi bi-box-arrow-up"></i>上模<br>Install</button>'+
-                          '</div>'+
-                        '</td>'+
-                      '</tr>'
-              tbody.append(rowStr);
-            }
+            renderReTable(result[1]);
             showResult('success','历史下模信息加载成功','','',false,'',2000,true)
           }
           else{
@@ -211,9 +248,9 @@
                 '<td>'+uninstallRemark+'</td>'+
                 '<td>'+
                   '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'+
-                    '<button class="btn btn-info btn-table-action" onclick="btnInWarehouse(this)"><i class="bi bi-box-arrow-in-right"></i>入库<br>In</button>'+
-                    '<button class="btn btn-success btn-table-action" onclick="btnOutWarehouse(this)"><i class="bi bi-box-arrow-up-right"></i>出库<br>Out</button>'+
-                    '<button class="btn btn-danger btn-table-action" onclick="btnInstallMold(this)"><i class="bi bi-box-arrow-up"></i>上模<br>Install</button>'+
+                    '<button class="btn btn-info btn-table-action" onclick="btnInWarehouse(this)"><i class="bi bi-box-arrow-in-right"></i><span>入库</span><span>In</span></button>'+
+                    '<button class="btn btn-success btn-table-action" onclick="btnOutWarehouse(this)"><i class="bi bi-box-arrow-up-right"></i><span>出库</span><span>Out</span></button>'+
+                    '<button class="btn btn-danger btn-table-action" onclick="btnInstallMold(this)"><i class="bi bi-box-arrow-up"></i><span>上模</span><span>Install</span></button>'+
                   '</div>'+
                 '</td>'+
               '</tr>'

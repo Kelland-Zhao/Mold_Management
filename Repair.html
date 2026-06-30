@@ -102,7 +102,6 @@
       </div>
     </div>
 
-    <div class="section-title">维修记录 / REPAIR RECORDS</div>
     <div style="display:none;">
       <span id="loginWorkshop"></span>
       <span id="loginProcess"></span>
@@ -111,16 +110,9 @@
     </div>
     <div class="user-info-bar">
       <div class="info-item">
-        <span class="info-label">工号 / ID:</span>
-        <span class="info-value" id="loginId"></span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">姓名 / Name:</span>
-        <span class="info-value" id="loginName"></span>
-      </div>
-      <div class="info-item ms-auto">
-        <button id="btnNewUninstallMold" onclick="btnNewUninstallMold()" class="btn btn-warning btn-sm"><i class="bi bi-box-arrow-down"></i> 新的维修下模<br>New Repair Uninstall</button>
-        <button id="btnHistoryUninstallMold" onclick="btnHistoryUninstallMold()" class="btn btn-danger btn-sm ms-2"><i class="bi bi-tools"></i> 维修中的模具<br>Molds in Repair</button>
+        <button id="btnNewUninstallMold" onclick="btnNewUninstallMold()" class="btn btn-warning btn-sm"><i class="bi bi-box-arrow-down"></i><span>新维修下模</span><span>New Repair</span></button>
+        <button id="btnHistoryUninstallMold" onclick="btnHistoryUninstallMold()" class="btn btn-danger btn-sm ms-2"><i class="bi bi-tools"></i><span>维修中的模具</span><span>In Repair</span></button>
+        <button id="btnRefreshRe" class="btn btn-outline-danger btn-sm ms-2" title="刷新 / Refresh"><i class="bi bi-arrow-clockwise"></i></button>
       </div>
     </div>
 
