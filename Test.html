@@ -120,24 +120,23 @@
   </div>
 
   <div id="modalInstallMold" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">上模信息填写 / Install Mold Info<input id="rowInstallMold" type="number" style="border:0;outline:0;width:60px;margin-left:8px;" disabled></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div class="row">
-            <div class="col">
-              <div class="input-group">
-                <span class="input-group-text">模具号<br>Mold No.</span>
-                <input type="text" id="moldNoInstall" class="form-control" placeholder="输入模具号 / Enter Mold No.">
-                <span class="input-group-text">机台号<br>Machine No.</span>
-                <select class="form-select" id="prodInstallMachine"></select>
-                <button id="btnModalInstallMold" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
-
-              </div>
-            </div>
+          <div class="mb-3">
+            <label class="form-label">模具号<span class="label-en">Mold No.</span></label>
+            <input type="text" id="moldNoInstall" class="form-control" placeholder="输入模具号 / Enter Mold No.">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">机台号<span class="label-en">Machine No.</span></label>
+            <select class="form-select" id="prodInstallMachine"></select>
+          </div>
+          <div class="text-end">
+            <button id="btnModalInstallMold" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
           </div>
         </div>
       </div>
@@ -145,24 +144,23 @@
   </div>
 
   <div id="modalUninstallMold" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">下模信息填写 / Uninstall Mold Info<input id="rowUninstallMold" type="number" style="border:0;outline:0;width:60px;margin-left:8px;" disabled></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div class="row">
-            <div class="col">
-              <div class="input-group">
-                <span class="input-group-text">模具号<br>Mold No.</span>
-                <input type="text" id="moldNoUninstall" class="form-control" placeholder="输入模具号 / Enter Mold No.">
-                <span class="input-group-text">机台号<br>Machine No.</span>
-                <select class="form-select" id="prodUninstallMachine"></select>
-                <button id="btnModalUninstallMold" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
-
-              </div>
-            </div>
+          <div class="mb-3">
+            <label class="form-label">模具号<span class="label-en">Mold No.</span></label>
+            <input type="text" id="moldNoUninstall" class="form-control" placeholder="输入模具号 / Enter Mold No.">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">机台号<span class="label-en">Machine No.</span></label>
+            <select class="form-select" id="prodUninstallMachine"></select>
+          </div>
+          <div class="text-end">
+            <button id="btnModalUninstallMold" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
           </div>
         </div>
       </div>
