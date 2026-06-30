@@ -63,5 +63,72 @@
   .navbar {
     background-color: #E60012;
   }
-  
+
+  /*修复 Bootstrap 5 input-group 内 Select2 宽度塌缩问题*/
+  .modal .input-group {
+    flex-wrap: nowrap;
+  }
+  .input-group > .select2-container--bootstrap {
+    display: flex !important;
+    flex: 1 1 auto;
+    width: 1% !important;
+  }
+  .input-group > .select2-container--bootstrap .select2-selection--single {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  /*=== UI规范 §4.10 Select2 品牌红样式 ===*/
+  .select2-container--bootstrap.select2-container--focus .select2-selection,
+  .select2-container--bootstrap.select2-container--open .select2-selection {
+    border-color: #E60012;
+    box-shadow: 0 0 0 0.15rem rgba(230,0,18,0.15);
+  }
+  .select2-dropdown {
+    border-color: #E60012;
+    font-size: 12px;
+  }
+  .select2-results__option--highlighted[aria-selected],
+  .select2-container--bootstrap .select2-results__option--highlighted[aria-selected] {
+    background-color: #E60012 !important;
+    color: white !important;
+  }
+  table.bilingual-table td .select2-container {
+    vertical-align: middle;
+  }
+
+  /*=== UI规范 §2.1 状态色 ===*/
+  .status-ongoing { background: #fff3cd; color: #856404; }
+  .status-completed { background: #d4edda; color: #155724; }
+  .editable-cell { background: #fff3cd; border-left: 3px solid #ffc107; }
+
+  /*=== UI规范 §4.6 表格操作按钮 ===*/
+  .btn-table-action {
+    font-size: 0.75rem;
+    width: 84px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+    white-space: normal;
+    padding: 4px 6px;
+  }
+  .btn-table-action-wide {
+    font-size: 0.75rem;
+    min-width: 100px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+    white-space: normal;
+    padding: 4px 6px;
+  }
+  .btn-table-action i, .btn-table-action-wide i {
+    font-size: 0.85rem;
+    margin-bottom: 1px;
+  }
+
 </style>

@@ -123,17 +123,12 @@
                         '<td>'+arrData[i][3]+'</td>'+
                         '<td>'+arrData[i][4]+'</td>'+
                         '<td>'+arrData[i][5]+'</td>'+
-                        '<td>'+"<div class='row'>"+
-                                  "<div class='col' style='padding-riht:1px'>"+
-                                    "<button class='btn btn-sm btn-info w-100' style='font-size:small' onclick='btnInWarehouse(this)'>入库</button>"+
-                                  "</div>"+
-                                  "<div class='col' style='padding-left:1px;padding-right:1px'>"+
-                                    "<button class='btn btn-sm btn-success w-100' style='font-size:small' onclick='btnOutWarehouse(this)'>出库</button>"+
-                                  "</div>"+
-                                  "<div class='col' style='padding-left:1px'>"+
-                                    "<button class='btn btn-sm btn-danger w-100' style='font-size:small' onclick='btnInstallMold(this)'>上模</button>"+
-                                  "</div>"+
-                                "</div>"+
+                        '<td>'+
+                          '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'+
+                            '<button class="btn btn-info btn-table-action" onclick="btnInWarehouse(this)"><i class="bi bi-box-arrow-in-right"></i>入库<br>In</button>'+
+                            '<button class="btn btn-success btn-table-action" onclick="btnOutWarehouse(this)"><i class="bi bi-box-arrow-up-right"></i>出库<br>Out</button>'+
+                            '<button class="btn btn-danger btn-table-action" onclick="btnInstallMold(this)"><i class="bi bi-box-arrow-up"></i>上模<br>Install</button>'+
+                          '</div>'+
                         '</td>'+
                       '</tr>'
               tbody.append(rowStr);
@@ -214,17 +209,12 @@
                 '<td>'+machineUninstall+'</td>'+
                 '<td>'+moldNoUninstallDes+'</td>'+
                 '<td>'+uninstallRemark+'</td>'+
-                '<td>'+"<div class='row'>"+
-                          "<div class='col' style='padding-riht:1px'>"+
-                            "<button class='btn btn-sm btn-info w-100' style='font-size:small' onclick='btnInWarehouse(this)'>入库</button>"+
-                          "</div>"+
-                          "<div class='col' style='padding-left:1px;padding-right:1px'>"+
-                            "<button class='btn btn-sm btn-success w-100' style='font-size:small' onclick='btnOutWarehouse(this)'>出库</button>"+
-                          "</div>"+
-                          "<div class='col' style='padding-left:1px'>"+
-                            "<button class='btn btn-sm btn-danger w-100' style='font-size:small' onclick='btnInstallMold(this)'>上模</button>"+
-                          "</div>"+
-                        "</div>"+
+                '<td>'+
+                  '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'+
+                    '<button class="btn btn-info btn-table-action" onclick="btnInWarehouse(this)"><i class="bi bi-box-arrow-in-right"></i>入库<br>In</button>'+
+                    '<button class="btn btn-success btn-table-action" onclick="btnOutWarehouse(this)"><i class="bi bi-box-arrow-up-right"></i>出库<br>Out</button>'+
+                    '<button class="btn btn-danger btn-table-action" onclick="btnInstallMold(this)"><i class="bi bi-box-arrow-up"></i>上模<br>Install</button>'+
+                  '</div>'+
                 '</td>'+
               '</tr>'
       showRunning('','正在保存下模信息……','','',120000);
@@ -490,12 +480,19 @@
     if (secTemp.hasClass('select2-hidden-accessible')) {
       secTemp.select2('destroy');
     }
+    var modal = secTemp.closest('.modal');
     secTemp.select2({
       theme: 'bootstrap',
       placeholder: '选择…… / Select……',
       allowClear: true,
-      width: '100%'
+      width: '100%',
+      dropdownParent: modal
     });
+    if (modal.length) {
+      modal.off('shown.bs.modal.s2fix').on('shown.bs.modal.s2fix', function() {
+        secTemp.select2({ width: '100%', dropdownParent: modal });
+      });
+    }
   }
 
   /***显示过程提示信息***/

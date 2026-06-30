@@ -216,12 +216,19 @@
     if (secTemp.hasClass('select2-hidden-accessible')) {
       secTemp.select2('destroy');
     }
+    var modal = secTemp.closest('.modal');
     secTemp.select2({
       theme: 'bootstrap',
       placeholder: '选择…… / Select……',
       allowClear: true,
-      width: '100%'
+      width: '100%',
+      dropdownParent: modal
     });
+    if (modal.length) {
+      modal.off('shown.bs.modal.s2fix').on('shown.bs.modal.s2fix', function() {
+        secTemp.select2({ width: '100%', dropdownParent: modal });
+      });
+    }
   }
 
   /***显示过程提示信息***/
