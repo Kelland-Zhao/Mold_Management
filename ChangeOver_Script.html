@@ -50,7 +50,8 @@
     let dd = String(today.getDate()).padStart(2, '0');
     $('#prodDate').val(yyyy + '-' + mm + '-' + dd);
     if(loginWorkshop&&loginProcess&&loginId&&loginName){
-      showRunning('','正在加载机台信息……','','',120000);
+      // 一次性加载：先机台信息，再转规格表格数据
+      showRunning('','正在加载数据……','','',120000);
       google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
         if(result[0]=="OK"){
           arrAem=result[1];
@@ -58,7 +59,18 @@
           dynamicGenerationSelectOption(secTemp,arrAem);
           secTemp=$("#prodUninstallMachine");
           dynamicGenerationSelectOption(secTemp,arrAem);
-          showResult('success','机台计划加载成功','','',false,'',2000,true)
+          // 链式加载转规格表格
+          let prodDate=$("#prodDate").val();
+          google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result2=>{
+            if(result2[0]=="OK"){
+              renderCoTable(result2[1]);
+              showResult('success','数据加载完成','','',false,'',2000,true);
+            }
+            else{
+              $("#tbodyCoInfo").empty();
+              showResult('info','当天无转规格记录',result2[1],'',true,'','',false);
+            }
+          }).getCoInfo(loginWorkshop,loginProcess,prodDate);
         }
         else{
           showResult('error','机台计划加载失败',result[1],'',true,'','',false);
@@ -70,8 +82,8 @@
     }
   });
 
-  /***点击确认并获取转规格数据***/
-  $("#btnConfirmCo").on("click",function(){
+  /***加载转规格表格数据***/
+  function loadCoData(){
     let prodDate=$("#prodDate").val();
     if(prodDate!=""){
       showRunning('','正在加载转规格信息……','','',120000);
@@ -79,48 +91,64 @@
       let loginProcess=$("#loginProcess").text().trim()
       google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
         if(result[0]=="OK"){
-          let arrCoInfo=result[1];
-          let tbody=$("#tbodyCoInfo");
-          let tbodyRows=tbody.find("tr").length;
-          if(tbodyRows>0){
-            for(let i=tbodyRows-1;i>-1;i--){
-              tbody.find("tr").eq(i).remove()
-            }
-          }
-          let rowStr="";
-          for(let i=0;i<arrCoInfo.length;i++){
-            rowStr='<tr>'+
-                      '<td>'+arrCoInfo[i][0]+'</td>'+
-                      '<td>'+arrCoInfo[i][1]+'</td>'+
-                      '<td>'+arrCoInfo[i][2]+'</td>'+
-                      '<td>'+arrCoInfo[i][3]+'</td>'+
-                      '<td>'+arrCoInfo[i][4]+'</td>'+
-                      '<td>'+arrCoInfo[i][5]+'</td>'+
-                      '<td>'+arrCoInfo[i][6]+'</td>'+
-                      '<td>'+arrCoInfo[i][7]+'</td>'+
-                      '<td>'+arrCoInfo[i][8]+'</td>'+
-                      '<td>'+
-                        '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'+
-                          '<button class="btn btn-success btn-table-action" onclick="btnOutWarehouse(this)"><i class="bi bi-box-arrow-up-right"></i>出库<br>Out</button>'+
-                          '<button class="btn btn-danger btn-table-action" onclick="btnInstallMold(this)"><i class="bi bi-box-arrow-up"></i>上模<br>Install</button>'+
-                          '<button class="btn btn-warning btn-table-action" onclick="btnUninstallMold(this)"><i class="bi bi-box-arrow-down"></i>下模<br>Uninstall</button>'+
-                          '<button class="btn btn-info btn-table-action" onclick="btnInWarehouse(this)"><i class="bi bi-box-arrow-in-right"></i>入库<br>In</button>'+
-                        '</div>'+
-                      '</td>'+
-                    '</tr>'
-            tbody.append(rowStr);
-          }
+          renderCoTable(result[1]);
           showResult('success','转规格信息加载成功','','',false,'',2000,true)
         }
         else{
-          showResult('error','转规格信息加载失败',result[1],'',true,'','',false);
+          $("#tbodyCoInfo").empty();
+          showResult('info','当天无转规格记录',result[1],'',true,'','',false);
         }
       }).getCoInfo(loginWorkshop,loginProcess,prodDate);
     }
     else{
       showResult('error','缺失日期','请输入日期','',true,'','',false);
     }
+  }
+
+  /***刷新按钮***/
+  $("#btnRefreshCo").on("click",loadCoData);
+
+  /***切换日期自动加载***/
+  $('#prodDate').on('changeDate',loadCoData);
+
+  /***回到今天***/
+  $("#btnToday").on("click",function(){
+    let today = new Date();
+    let yyyy = today.getFullYear();
+    let mm = String(today.getMonth() + 1).padStart(2, '0');
+    let dd = String(today.getDate()).padStart(2, '0');
+    $('#prodDate').datepicker('setDate', yyyy + '-' + mm + '-' + dd);
+    loadCoData();
   })
+
+  /***渲染转规格表格***/
+  function renderCoTable(arrCoInfo){
+    let tbody=$("#tbodyCoInfo");
+    tbody.empty();
+    let rowStr="";
+    for(let i=0;i<arrCoInfo.length;i++){
+      rowStr='<tr>'+
+              '<td>'+arrCoInfo[i][0]+'</td>'+
+              '<td>'+arrCoInfo[i][1]+'</td>'+
+              '<td>'+arrCoInfo[i][2]+'</td>'+
+              '<td>'+arrCoInfo[i][3]+'</td>'+
+              '<td>'+arrCoInfo[i][4]+'</td>'+
+              '<td>'+arrCoInfo[i][5]+'</td>'+
+              '<td>'+arrCoInfo[i][6]+'</td>'+
+              '<td>'+arrCoInfo[i][7]+'</td>'+
+              '<td>'+arrCoInfo[i][8]+'</td>'+
+              '<td>'+
+                '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'+
+                  '<button class="btn btn-success btn-table-action" onclick="btnOutWarehouse(this)"><i class="bi bi-box-arrow-up-right"></i><span>出库</span><span>Out</span></button>'+
+                  '<button class="btn btn-danger btn-table-action" onclick="btnInstallMold(this)"><i class="bi bi-box-arrow-up"></i><span>上模</span><span>Install</span></button>'+
+                  '<button class="btn btn-warning btn-table-action" onclick="btnUninstallMold(this)"><i class="bi bi-box-arrow-down"></i><span>下模</span><span>Uninstall</span></button>'+
+                  '<button class="btn btn-info btn-table-action" onclick="btnInWarehouse(this)"><i class="bi bi-box-arrow-in-right"></i><span>入库</span><span>In</span></button>'+
+                '</div>'+
+              '</td>'+
+            '</tr>'
+      tbody.append(rowStr);
+    }
+  }
 
   /***出库***/
   function btnOutWarehouse(obj){

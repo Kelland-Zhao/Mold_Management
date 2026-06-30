@@ -72,6 +72,14 @@
     .user-info-bar .info-item { display: flex; align-items: center; gap: 4px; }
     .user-info-bar .info-label { color: #6c757d; }
     .user-info-bar .info-value { font-weight: 600; color: #333; }
+    .modal-header-out { background: #198754; color: #fff; }
+    .modal-header-out .btn-close { filter: brightness(0) invert(1); }
+    .modal-header-install { background: #E60012; color: #fff; }
+    .modal-header-install .btn-close { filter: brightness(0) invert(1); }
+    .modal-header-uninstall { background: #fd7e14; color: #fff; }
+    .modal-header-uninstall .btn-close { filter: brightness(0) invert(1); }
+    .modal-header-in { background: #0dcaf0; color: #000; }
+    .btn-submit { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.3; }
   </style>
 </head>
 <body>
@@ -136,10 +144,10 @@
   </div>
 
   <div id="modalUninstallMold" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">下模信息填写 / Uninstall Mold Info<input id="rowUninstallMold" type="number" style="border:0;outline:0;width:60px;margin-left:8px;" disabled></h5>
+        <div class="modal-header modal-header-uninstall">
+          <h5 class="modal-title">下模信息填写 / Uninstall Mold Info<input id="rowUninstallMold" type="hidden"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -160,7 +168,7 @@
             <input type="text" id="uninstallRemark" class="form-control" placeholder="输入备注 / Enter Remark" value="NA">
           </div>
           <div class="text-end">
-            <button id="btnModalUninstallMold" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
+            <button id="btnModalUninstallMold" class="btn btn-warning btn-submit" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i><span>确认提交</span><span>Confirm</span></button>
           </div>
         </div>
       </div>
@@ -168,10 +176,10 @@
   </div>
 
   <div id="modalHistoryUninstallMold" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">下模信息填写(历史) / Uninstall Mold Info (History)<input id="rowHistoryUninstallMold" type="number" style="border:0;outline:0;width:60px;margin-left:8px;" disabled></h5>
+        <div class="modal-header modal-header-uninstall">
+          <h5 class="modal-title">下模信息填写(历史) / Uninstall Mold Info (History)<input id="rowHistoryUninstallMold" type="hidden"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -180,7 +188,7 @@
             <input type="text" id="moldNoHistoryUninstall" class="form-control" placeholder="输入模具号 / Enter Mold No.">
           </div>
           <div class="text-end">
-            <button id="btnModalHistoryUninstallMold" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
+            <button id="btnModalHistoryUninstallMold" class="btn btn-warning btn-submit" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i><span>确认提交</span><span>Confirm</span></button>
           </div>
         </div>
       </div>
@@ -188,10 +196,10 @@
   </div>
 
   <div id="modalInWarehouse" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">入库信息填写 / Warehouse In Info<input id="rowInWarehouse" type="number" style="border:0;outline:0;width:60px;margin-left:8px;" disabled></h5>
+        <div class="modal-header modal-header-in">
+          <h5 class="modal-title">入库信息填写 / Warehouse In Info<input id="rowInWarehouse" type="hidden"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -204,7 +212,7 @@
             <input type="text" id="inWarehourseRemark" class="form-control" placeholder="输入备注 / Enter Remark" value="NA">
           </div>
           <div class="text-end">
-            <button id="btnModalInWarehouse" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
+            <button id="btnModalInWarehouse" class="btn btn-info btn-submit" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i><span>确认提交</span><span>Confirm</span></button>
           </div>
         </div>
       </div>
@@ -212,10 +220,10 @@
   </div>
 
   <div id="modalOutWarehouse" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">出库信息填写 / Warehouse Out Info<input id="rowOutWarehouse" type="number" style="border:0;outline:0;width:60px;margin-left:8px;" disabled></h5>
+        <div class="modal-header modal-header-out">
+          <h5 class="modal-title">出库信息填写 / Warehouse Out Info<input id="rowOutWarehouse" type="hidden"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -228,7 +236,7 @@
             <input type="text" id="outWarehourseRemark" class="form-control" placeholder="输入备注 / Enter Remark" value="NA">
           </div>
           <div class="text-end">
-            <button id="btnModalOutWarehouse" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
+            <button id="btnModalOutWarehouse" class="btn btn-success btn-submit" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i><span>确认提交</span><span>Confirm</span></button>
           </div>
         </div>
       </div>
@@ -236,10 +244,10 @@
   </div>
 
   <div id="modalInstallMold" class="modal fade" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">上模信息填写 / Install Mold Info<input id="rowInstallMold" type="number" style="border:0;outline:0;width:60px;margin-left:8px;" disabled></h5>
+        <div class="modal-header modal-header-install">
+          <h5 class="modal-title">上模信息填写 / Install Mold Info<input id="rowInstallMold" type="hidden"></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -256,7 +264,7 @@
             <input type="text" id="installRemark" class="form-control" placeholder="输入备注 / Enter Remark" value="NA">
           </div>
           <div class="text-end">
-            <button id="btnModalInstallMold" class="btn btn-danger" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i> 确认&提交<br>Confirm & Submit</button>
+            <button id="btnModalInstallMold" class="btn btn-danger btn-submit" data-bs-dismiss="modal"><i class="bi bi-check-lg"></i><span>确认提交</span><span>Confirm</span></button>
           </div>
         </div>
       </div>
