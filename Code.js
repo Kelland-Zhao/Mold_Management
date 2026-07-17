@@ -781,6 +781,32 @@ function formatVariableToYMDHMS(variable){
   return result;
 }
 
+/***根据模具号查询模具信息（供前端纯模具号扫码调用，查模具状态清单保证名称匹配）***/
+function getMoldInfoByNo(moldNo,step){
+  try{
+    let saas_MoldMainData=SpreadsheetApp.openById(moldManagementRcord_id);
+    let sbn_MoldStatusList=saas_MoldMainData.getSheetByName("模具状态清单");
+    let arrStatusList=sbn_MoldStatusList.getRange(2,1,sbn_MoldStatusList.getLastRow()-1,11).getDisplayValues();
+    // 状态清单列: [0]模具名称 [1]模具号 [2]产品名称 [3]模具步骤
+    let matchRow;
+    if(step){
+      matchRow=arrStatusList.find(v=>v[1]==moldNo&&v[3]==step);
+    }
+    if(!matchRow){
+      matchRow=arrStatusList.find(v=>v[1]==moldNo);
+    }
+    if(matchRow){
+      return ["OK",matchRow[0],moldNo,matchRow[2],matchRow[3]];
+    }
+    else{
+      return ["NO","模具号 "+moldNo+" 未在模具状态清单中找到"];
+    }
+  }
+  catch(e){
+    return ["NO",e.toString()];
+  }
+}
+
 /***根据模具号及步骤索引其它模具信息***/
 function getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNo,arrMoldInfoScan){
   let objMoldInfo={};

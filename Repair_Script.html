@@ -188,7 +188,7 @@
 
   /***新的维修下模***/
   function btnNewUninstallMold(){
-    arrMolarrMoldInfo=[];
+    arrMoldInfoScan=[];
     $("#moldNoUninstall").val("")
     $("#modalUninstallMold").modal('show');
   }
@@ -273,8 +273,8 @@
 
   /***入库***/
   function btnInWarehouse(obj){
-    arrMolarrMoldInfo=[];
-    let objRow=$(obj).parent().parent().parent().parent().index();
+    arrMoldInfoScan=[];
+    let objRow=$(obj).closest("tr").index();
     $("#rowInWarehouse").val(objRow);
     $("#moldNoInWarehouse").val("")
     $("#modalInWarehouse").modal('show');
@@ -351,8 +351,8 @@
 
   /***出库***/
   function btnOutWarehouse(obj){
-    arrMolarrMoldInfo=[];
-    let objRow=$(obj).parent().parent().parent().parent().index();
+    arrMoldInfoScan=[];
+    let objRow=$(obj).closest("tr").index();
     $("#rowOutWarehouse").val(objRow);
     $("#moldNoOutWarehouse").val("")
     $("#modalOutWarehouse").modal('show');
@@ -429,8 +429,8 @@
 
   /***上模***/
   function btnInstallMold(obj){
-    arrMolarrMoldInfo=[];
-    let objRow=$(obj).parent().parent().parent().parent().index();
+    arrMoldInfoScan=[];
+    let objRow=$(obj).closest("tr").index();
     $("#rowInstallMold").val(objRow);
     $("#moldNoInstall").val("")
     $("#modalInstallMold").modal('show');

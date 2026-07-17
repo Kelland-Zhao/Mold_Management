@@ -152,9 +152,11 @@
 
   /***出库***/
   function btnOutWarehouse(obj){
-    arrMolarrMoldInfo=[];
-    let objRow=$(obj).parent().parent().parent().parent().index();
+    arrMoldInfoScan=[];
+    let objRow=$(obj).closest("tr").index();
     $("#rowOutWarehouse").val(objRow);
+    let rowStep=$(obj).closest("tr").find("td").eq(7).text().trim();
+    $("#moldNoOutWarehouse").attr("data-step",rowStep);
     $("#moldNoOutWarehouse").val("")
     $("#modalOutWarehouse").modal('show');
   }
@@ -171,6 +173,28 @@
                   "<p>模具步骤：<b style='color:red'>"+arrInputVal[3]+"</b></p>"
       showResult('info','模具信息','',htmlStr,true,'','',false);
       $("#moldNoOutWarehouse").val(arrInputVal[1]);
+    }
+    else if((/^M\dIM\d{4}$/).test(inputVal)){
+      arrMoldInfoScan=[];
+      let submitBtn=$("#btnModalOutWarehouse");
+      submitBtn.prop("disabled",true);
+      showRunning('','正在查询模具信息……','','',10000);
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        Swal.close();
+        submitBtn.prop("disabled",false);
+        if(result[0]=="OK"){
+          arrMoldInfoScan=[result[1],result[2],result[3],result[4]];
+          let htmlStr="<p>模具名称：<b style='color:red'>"+result[1]+"</b></p>"+
+                      "<p>模具号：<b style='color:red'>"+result[2]+"</b></p>"+
+                      "<p>产品名称：<b style='color:red'>"+result[3]+"</b></p>"+
+                      "<p>模具步骤：<b style='color:red'>"+result[4]+"</b></p>"
+          showResult('info','模具信息','',htmlStr,true,'','',false);
+        }
+        else{
+          showResult('error','模具号查询失败',result[1],'',true,'','',false);
+          $("#moldNoOutWarehouse").val("");
+        }
+      }).getMoldInfoByNo(inputVal, $("#moldNoOutWarehouse").attr("data-step")||"");
     }
   })
 
@@ -231,9 +255,17 @@
 
   /***上模***/
   function btnInstallMold(obj){
-    arrMolarrMoldInfo=[];
-    let objRow=$(obj).parent().parent().parent().parent().index();
+    arrMoldInfoScan=[];
+    let objRow=$(obj).closest("tr").index();
     $("#rowInstallMold").val(objRow);
+    // 预填行数据：机器号
+    let tbodyRow=$(obj).closest("tr").find("td");
+    let rowMachine=tbodyRow.eq(2).text().trim();
+    let rowAfterStep=tbodyRow.eq(7).text().trim();
+    $("#prodInstallMachine").val(rowMachine).trigger('change');
+    $("#moldNoInstall").attr("data-step",rowAfterStep);
+    // 在模具号输入框显示期望步骤提示
+    $("#moldNoInstall").attr("placeholder","输入模具号 / Enter Mold No. (期望步骤: "+rowAfterStep+")");
     $("#moldNoInstall").val("")
     $("#modalInstallMold").modal('show');
   }
@@ -241,6 +273,7 @@
   $("#moldNoInstall").on("input",function(){
     arrMoldInfoScan=[];
     let inputVal=$("#moldNoInstall").val().replace(/[\n\r]/g,"");
+    // 完整格式扫码：包含四个中文标签
     if(inputVal.length>8&&inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
       let arrInputVal=inputVal.trim().substring(inputVal.trim().search("模具名称"),inputVal.trim().length).split(/模具名称[：:]|模具号[：:]|产品名称[：:]|模具步骤[：:]/).filter(v=>v!="").map(v=>v.trim());
       arrMoldInfoScan=arrInputVal;
@@ -250,6 +283,29 @@
                   "<p>模具步骤：<b style='color:red'>"+arrInputVal[3]+"</b></p>"
       showResult('info','模具信息','',htmlStr,true,'','',false);
       $("#moldNoInstall").val(arrInputVal[1]);
+    }
+    // 纯模具号扫码/输入：调用后端查询
+    else if((/^M\dIM\d{4}$/).test(inputVal)){
+      arrMoldInfoScan=[];
+      let submitBtn=$("#btnModalInstallMold");
+      submitBtn.prop("disabled",true);
+      showRunning('','正在查询模具信息……','','',10000);
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        Swal.close();
+        submitBtn.prop("disabled",false);
+        if(result[0]=="OK"){
+          arrMoldInfoScan=[result[1],result[2],result[3],result[4]];
+          let htmlStr="<p>模具名称：<b style='color:red'>"+result[1]+"</b></p>"+
+                      "<p>模具号：<b style='color:red'>"+result[2]+"</b></p>"+
+                      "<p>产品名称：<b style='color:red'>"+result[3]+"</b></p>"+
+                      "<p>模具步骤：<b style='color:red'>"+result[4]+"</b></p>"
+          showResult('info','模具信息','',htmlStr,true,'','',false);
+        }
+        else{
+          showResult('error','模具号查询失败',result[1],'',true,'','',false);
+          $("#moldNoInstall").val("");
+        }
+      }).getMoldInfoByNo(inputVal, $(this).attr("data-step")||"");
     }
   })
 
@@ -269,10 +325,12 @@
   })
 
   $("#btnModalInstallMold").on("click",function(){
+    console.log("[DEBUG btnModalInstallMold] arrMoldInfoScan:", JSON.stringify(arrMoldInfoScan), "len:", arrMoldInfoScan.length);
     let rowInstallMold=$("#rowInstallMold").val();
     let moldNoInstall=$("#moldNoInstall").val();
     let installMachine=$("#prodInstallMachine").val();
     let installRemark=$("#installRemark").val();
+    console.log("[DEBUG btnModalInstallMold] moldNoInstall:", moldNoInstall, "installMachine:", installMachine);
     if(arrMoldInfoScan.length==4){
       let tbody=$("#tbodyCoInfo");
       let tbodyRow=tbody.find("tr").eq(rowInstallMold).find("td");
@@ -287,8 +345,11 @@
       let coAfterMoldNo=tbodyRow.eq(5).text().trim();
       let coAfterProduct=tbodyRow.eq(6).text().trim();
       let coAfterStep=tbodyRow.eq(7).text().trim();
-      console.log(installMachine,coMachine,moldNoInstall,coAfterMoldNo,arrMoldInfoScan[3],coAfterStep)
-      if(installMachine!=""&&installMachine==coMachine&&moldNoInstall!=""&&moldNoInstall==coAfterMoldNo&&arrMoldInfoScan[3]==coAfterStep){
+      // 步骤提示（不阻止提交，因模具主数据步骤可能与CO变更组件名不同）
+      if(arrMoldInfoScan[3]!=coAfterStep){
+        console.log("[INFO] 模具步骤("+arrMoldInfoScan[3]+")与计划步骤("+coAfterStep+")不一致，请确认是否正确");
+      }
+      if(installMachine!=""&&installMachine==coMachine&&moldNoInstall!=""&&moldNoInstall==coAfterMoldNo){
         if(coAfterMoldNo!=""){
           showRunning('','正在保存上模信息……','','',120000);
           google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
@@ -315,9 +376,11 @@
 
   /***下模***/
   function btnUninstallMold(obj){
-    arrMolarrMoldInfo=[];
-    let objRow=$(obj).parent().parent().parent().parent().index();
+    arrMoldInfoScan=[];
+    let objRow=$(obj).closest("tr").index();
     $("#rowUninstallMold").val(objRow);
+    let rowStep=$(obj).closest("tr").find("td").eq(7).text().trim();
+    $("#moldNoUninstall").attr("data-step",rowStep);
     $("#moldNoUninstall").val("")
     $("#modalUninstallMold").modal('show');
   }
@@ -334,6 +397,28 @@
                   "<p>模具步骤：<b style='color:red'>"+arrInputVal[3]+"</b></p>"
       showResult('info','模具信息','',htmlStr,true,'','',false);
       $("#moldNoUninstall").val(arrInputVal[1]);
+    }
+    else if((/^M\dIM\d{4}$/).test(inputVal)){
+      arrMoldInfoScan=[];
+      let submitBtn=$("#btnModalUninstallMold");
+      submitBtn.prop("disabled",true);
+      showRunning('','正在查询模具信息……','','',10000);
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        Swal.close();
+        submitBtn.prop("disabled",false);
+        if(result[0]=="OK"){
+          arrMoldInfoScan=[result[1],result[2],result[3],result[4]];
+          let htmlStr="<p>模具名称：<b style='color:red'>"+result[1]+"</b></p>"+
+                      "<p>模具号：<b style='color:red'>"+result[2]+"</b></p>"+
+                      "<p>产品名称：<b style='color:red'>"+result[3]+"</b></p>"+
+                      "<p>模具步骤：<b style='color:red'>"+result[4]+"</b></p>"
+          showResult('info','模具信息','',htmlStr,true,'','',false);
+        }
+        else{
+          showResult('error','模具号查询失败',result[1],'',true,'','',false);
+          $("#moldNoUninstall").val("");
+        }
+      }).getMoldInfoByNo(inputVal, $("#moldNoUninstall").attr("data-step")||"");
     }
   })
 
@@ -397,14 +482,17 @@
 
   /***入库***/
   function btnInWarehouse(obj){
-    arrMolarrMoldInfo=[];
-    let objRow=$(obj).parent().parent().parent().parent().index();
+    arrMoldInfoScan=[];
+    let objRow=$(obj).closest("tr").index();
     $("#rowInWarehouse").val(objRow);
+    let rowStep=$(obj).closest("tr").find("td").eq(7).text().trim();
+    $("#moldNoInWarehouse").attr("data-step",rowStep);
     $("#moldNoInWarehouse").val("")
     $("#modalInWarehouse").modal('show');
   }
 
   $("#moldNoInWarehouse").on("input",function(){
+    arrMoldInfoScan=[];
     let inputVal=$("#moldNoInWarehouse").val().replace(/[\n\r]/g,"");
     if(inputVal.length>8&&inputVal.indexOf("模具名称")!=-1&&inputVal.indexOf("模具号")!=-1&&inputVal.indexOf("产品名称")!=-1&&inputVal.indexOf("模具步骤")!=-1){
       let arrInputVal=inputVal.trim().substring(inputVal.trim().search("模具名称"),inputVal.trim().length).split(/模具名称[：:]|模具号[：:]|产品名称[：:]|模具步骤[：:]/).filter(v=>v!="").map(v=>v.trim());
@@ -415,6 +503,28 @@
                   "<p>模具步骤：<b style='color:red'>"+arrInputVal[3]+"</b></p>"
       showResult('info','模具信息','',htmlStr,true,'','',false);
       $("#moldNoInWarehouse").val(arrInputVal[1]);
+    }
+    else if((/^M\dIM\d{4}$/).test(inputVal)){
+      arrMoldInfoScan=[];
+      let submitBtn=$("#btnModalInWarehouse");
+      submitBtn.prop("disabled",true);
+      showRunning('','正在查询模具信息……','','',10000);
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        Swal.close();
+        submitBtn.prop("disabled",false);
+        if(result[0]=="OK"){
+          arrMoldInfoScan=[result[1],result[2],result[3],result[4]];
+          let htmlStr="<p>模具名称：<b style='color:red'>"+result[1]+"</b></p>"+
+                      "<p>模具号：<b style='color:red'>"+result[2]+"</b></p>"+
+                      "<p>产品名称：<b style='color:red'>"+result[3]+"</b></p>"+
+                      "<p>模具步骤：<b style='color:red'>"+result[4]+"</b></p>"
+          showResult('info','模具信息','',htmlStr,true,'','',false);
+        }
+        else{
+          showResult('error','模具号查询失败',result[1],'',true,'','',false);
+          $("#moldNoInWarehouse").val("");
+        }
+      }).getMoldInfoByNo(inputVal, $("#moldNoInWarehouse").attr("data-step")||"");
     }
   })
 
