@@ -284,20 +284,21 @@ function getHistoryUninstall(loginWorkshop,loginProcess,moldNoHistoryUninstall,a
     let saas_MoldMainData=SpreadsheetApp.openById("1tnpYdn-B_rQGS5bjWtDBBVtPv9n8_f9MCx8j55j6q0U");
     let sbn_MoldMainData=saas_MoldMainData.getSheetByName("Database_format");
     let sbn_MoldStatusList=saas_MoldMainData.getSheetByName("模具状态清单");
-    let arrMoldStatusList=sbn_MoldStatusList.getRange(1,1,sbn_MoldStatusList.getLastRow(),9).getDisplayValues().filter(v=>(v[5]=="下模"||v[5]=="入库"||v[5]=="出库")&&v[6]=="维修");
-    let arrMoldStatusInfo=arrMoldStatusList.map(v=>v[1]+halfWidthToFullWidth(v[0])+v[3]);
-    let arrData=sbn_MoldMainData.getRange(1,1,sbn_MoldMainData.getLastRow(),15).getDisplayValues();
+    // 显示"正在维修中"的模具：状态=(下模/入库/出库) + 类型=维修
+    let arrMoldStatusList=sbn_MoldStatusList.getRange(1,1,sbn_MoldStatusList.getLastRow(),11).getDisplayValues().filter(v=>(v[5]=="下模"||v[5]=="入库"||v[5]=="出库")&&v[6]=="维修");
+    // JOIN：只用 QR 码精确匹配
+    let arrMoldStatusQR=new Set(arrMoldStatusList.map(v=>v[9]));
+    let arrData=sbn_MoldMainData.getRange(1,1,sbn_MoldMainData.getLastRow(),17).getDisplayValues();
     let arrDataFilter=[];
-    console.log(arrMoldInfoScan);
     if(moldNoHistoryUninstall&&arrMoldInfoScan){
-      arrDataFilter=arrData.filter(v=>{return v[3]==moldNoHistoryUninstall&&halfWidthToFullWidth(v[4])==halfWidthToFullWidth(arrMoldInfoScan[0])&&v[6]==arrMoldInfoScan[3]&&v[9]=="下模"&&v[11]=="维修"&&arrMoldStatusInfo.indexOf(moldNoHistoryUninstall+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3])!=-1}).reverse();
+      arrDataFilter=arrData.filter(v=>{return v[3]==moldNoHistoryUninstall&&v[6]==arrMoldInfoScan[3]&&v[9]=="下模"&&v[11]=="维修"&&arrMoldStatusQR.has(v[16]);}).reverse();
     }
     else{
-      let arrAllUninstallINfo=arrData.filter(v=>v[9]=="下模"&&v[11]=="维修").map(v=>v[3]+halfWidthToFullWidth(v[4])+v[6]);
-      console.log(arrAllUninstallINfo)
-      arrDataFilter=arrData.filter(v=>arrAllUninstallINfo.indexOf(v[3]+halfWidthToFullWidth(v[4])+v[6])!=-1&&arrMoldStatusInfo.indexOf(v[3]+halfWidthToFullWidth(v[4])+v[6])!=-1);
+      arrDataFilter=arrData.filter(v=>v[9]=="下模"&&v[11]=="维修"&&arrMoldStatusQR.has(v[16]));
     }
     if(arrDataFilter.length>0){
+      // 按下模时间降序排列
+      arrDataFilter.sort((a,b)=>b[1].localeCompare(a[1])||b[2].localeCompare(a[2]));
       arrDataFilter=arrDataFilter.map(v=>[v[1],v[2],v[3],v[8],v[12],v[13]]);
       return ["OK",arrDataFilter];
     }
@@ -325,7 +326,8 @@ function saveOutWarehouse(loginWorkshop,loginProcess,outDate,outShift,coMachine,
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+v[4]+v[6]+v[9]+v[11]==outDate+outShift+moldNoOutWarehouse+arrMoldInfoScan[0]+arrMoldInfoScan[3]+"出库"+"转规格"});
       if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoOutWarehouse,arrMoldInfoScan)
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),outDate,outShift,moldNoOutWarehouse,objMoldInfo["模具名称"],objMoldInfo["产品名称"],objMoldInfo["模具步骤"],coAfterProduct,"模具间","出库",loginName,"转规格"]);
+        let qrCode="模具名称："+objMoldInfo["模具名称"]+" 模具号："+moldNoOutWarehouse+" 产品名称："+objMoldInfo["产品名称"]+" 模具步骤："+objMoldInfo["模具步骤"];
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),outDate,outShift,moldNoOutWarehouse,objMoldInfo["模具名称"],objMoldInfo["产品名称"],objMoldInfo["模具步骤"],coAfterProduct,"模具间","出库",loginName,"转规格","","","","",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([["模具间","出库","转规格"]]);
         return ["OK","出库信息保存成功"];
       }
@@ -356,7 +358,8 @@ function saveInstallMold(loginWorkshop,loginProcess,outDate,outShift,coMachine,c
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3+halfWidthToFullWidth(v[4])+v[6]]+v[9]+v[11]==outDate+outShift+coAfterMoldNo+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"上模"+"转规格"});
       if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,coAfterMoldNo,arrMoldInfoScan)
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),outDate,outShift,coAfterMoldNo,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],coAfterProduct,installMachine,"上模",loginName,"转规格","",installRemark])
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],coAfterMoldNo,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),outDate,outShift,coAfterMoldNo,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],coAfterProduct,installMachine,"上模",loginName,"转规格","",installRemark,"","",qrCode])
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([[installMachine,"上模","转规格"]]);
         return ["OK","上模信息保存成功"];
       }
@@ -389,7 +392,8 @@ function saveUninstallMold(loginWorkshop,loginProcess,outDate,outShift,coMachine
         let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==outDate+outShift+coBeforeMoldNo+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"下模"+"转规格"});
         if(arrDataFilter.length<1){
           let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,coBeforeMoldNo,arrMoldInfoScan)
-          sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),outDate,outShift,coBeforeMoldNo,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],coBeforeProduct,uninstallMachine,"下模",loginName,"转规格","",uninstallRemark]);
+          let qrCode=buildQRCode(objMoldInfo["模具名称"],coBeforeMoldNo,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+          sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),outDate,outShift,coBeforeMoldNo,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],coBeforeProduct,uninstallMachine,"下模",loginName,"转规格","",uninstallRemark,,"",qrCode]);
           sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([[uninstallMachine,"下模","转规格"]]);
           return ["OK","下模信息保存成功"];
         }
@@ -427,7 +431,8 @@ function saveInWarehouse(loginWorkshop,loginProcess,inDate,inShift,coMachine,coB
         let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==inDate+inShift+moldNoInWarehouse+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"入库"+"转规格"});
         if(arrDataFilter.length<1){
           let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoInWarehouse,arrMoldInfoScan)
-          sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),inDate,inShift,moldNoInWarehouse,objMoldInfo["模具名称"],halfWidthToFullWidth(objMoldInfo["产品名称"]),objMoldInfo["模具步骤"],coBeforeProduct,"模具间","入库",loginName,"转规格"]);
+          let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoInWarehouse,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+          sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),inDate,inShift,moldNoInWarehouse,objMoldInfo["模具名称"],halfWidthToFullWidth(objMoldInfo["产品名称"]),objMoldInfo["模具步骤"],coBeforeProduct,"模具间","入库",loginName,"转规格",,"","","",qrCode]);
           sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([["模具间","入库","转规格"]]);
           return ["OK","入库信息保存成功"];
         }
@@ -462,7 +467,8 @@ function savePmUninstallMold(loginWorkshop,loginProcess,uninstallDate,uninstallS
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==uninstallDate+getZhShiftFromVariable(uninstallShift)+moldNoUninstall+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"下模"+"保养"});
       if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoUninstall,arrMoldInfoScan)
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),uninstallDate,getZhShiftFromVariable(uninstallShift),moldNoUninstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineUninstall,"下模",loginName,"保养"]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoUninstall,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),uninstallDate,getZhShiftFromVariable(uninstallShift),moldNoUninstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineUninstall,"下模",loginName,"保养",,"","","",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([[machineUninstall,"下模","保养"]]);
         return ["OK","下模信息保存成功"];
       }
@@ -493,7 +499,8 @@ function savePmInWarehouse(loginWorkshop,loginProcess,inDate,inShift,moldNoInWar
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==inDate+getZhShiftFromVariable(inShift)+moldNoInWarehouse+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"入库"+"保养"});
       if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoInWarehouse,arrMoldInfoScan);
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),inDate,getZhShiftFromVariable(inShift),moldNoInWarehouse,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"","模具间","入库",loginName,"保养"]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoInWarehouse,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),inDate,getZhShiftFromVariable(inShift),moldNoInWarehouse,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"","模具间","入库",loginName,"保养",,"","","",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([["模具间","入库","保养"]]);
         return ["OK","入库信息保存成功"];
       }
@@ -524,7 +531,8 @@ function savePmOutWarehouse(loginWorkshop,loginProcess,outDate,outShift,moldNoOu
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==outDate+outShift+moldNoOutWarehouse+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"出库"+"保养"});
       if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoOutWarehouse,arrMoldInfoScan);
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),outDate,getZhShiftFromVariable(outShift),moldNoOutWarehouse,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"","模具间","出库",loginName,"保养","",outWarehouseRemark]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoOutWarehouse,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),outDate,getZhShiftFromVariable(outShift),moldNoOutWarehouse,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"","模具间","出库",loginName,"保养","",outWarehouseRemark,,"",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([["模具间","出库","保养"]]);
         return ["OK","出库信息保存成功"];
       }
@@ -555,7 +563,8 @@ function savePmInstallMold(loginWorkshop,loginProcess,installDate,installShift,m
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==installDate+getZhShiftFromVariable(installShift)+moldNoInstall+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"上模"+"保养"});
       if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoInstall,arrMoldInfoScan);
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),installDate,getZhShiftFromVariable(installShift),moldNoInstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineInstall,"上模",loginName,"保养"]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoInstall,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),installDate,getZhShiftFromVariable(installShift),moldNoInstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineInstall,"上模",loginName,"保养",,"","","",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([[machineInstall,"上模","保养"]]);
         return ["OK","上模信息保存成功"];
       }
@@ -588,7 +597,8 @@ function saveReUninstallMold(loginWorkshop,loginProcess,nowDate,shift,moldNoUnin
         let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==nowDate+shift+moldNoUninstall+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"下模"+"维修"});
         // if(arrDataFilter.length<1){
           let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoUninstall,arrMoldInfoScan)
-          sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),nowDate,shift,moldNoUninstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineUninstall,"下模",loginName,"维修",moldNoUninstallDes,uninstallRemark]);
+          let qrCode="模具名称："+objMoldInfo["模具名称"]+" 模具号："+moldNoUninstall+" 产品名称："+objMoldInfo["产品名称"]+" 模具步骤："+objMoldInfo["模具步骤"];
+          sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),nowDate,shift,moldNoUninstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineUninstall,"下模",loginName,"维修",moldNoUninstallDes,uninstallRemark,"","",qrCode]);
           sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([[machineUninstall,"下模","维修"]]);
           return ["OK","下模信息保存成功"];
         // }
@@ -623,7 +633,8 @@ function saveReInWarehouse(loginWorkshop,loginProcess,loginName,rowDate,rowShift
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==rowDate+rowShift+moldNoInWarehouse+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"入库"+"维修"});
       // if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoInWarehouse,arrMoldInfoScan)
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),rowDate,rowShift,moldNoInWarehouse,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"","模具间","入库",loginName,"维修",rowDes,inWarehourseRemark]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoInWarehouse,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),rowDate,rowShift,moldNoInWarehouse,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"","模具间","入库",loginName,"维修",rowDes,inWarehourseRemark,,"",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([["模具间","入库","维修"]]);
         return ["OK","入库信息保存成功"];
       // }
@@ -654,7 +665,8 @@ function saveReOutWarehouse(loginWorkshop,loginProcess,loginName,rowDate,rowShif
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==rowDate+rowShift+moldNoOutWarehouse+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"出库"+"维修"});
       // if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoOutWarehouse,arrMoldInfoScan)
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),rowDate,rowShift,moldNoOutWarehouse,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"","模具间","出库",loginName,"维修",rowDes,outWarehourseRemark]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoOutWarehouse,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),rowDate,rowShift,moldNoOutWarehouse,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"","模具间","出库",loginName,"维修",rowDes,outWarehourseRemark,,"",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([["模具间","出库","维修"]]);
         return ["OK","出库信息保存成功"];
       // }
@@ -685,7 +697,8 @@ function saveReInstallMold(loginWorkshop,loginProcess,loginName,rowDate,rowShift
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==rowDate+rowShift+moldNoInstall+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"上模"+"维修"});
       // if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoInstall,arrMoldInfoScan)
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),rowDate,rowShift,moldNoInstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineInstall,"上模",loginName,"维修",rowDes,installRemark]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoInstall,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),rowDate,rowShift,moldNoInstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineInstall,"上模",loginName,"维修",rowDes,installRemark,,"",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([[machineInstall,"上模","维修"]]);
         return ["OK","上模信息保存成功"];
       // }
@@ -716,7 +729,8 @@ function saveTestInstallMold(loginWorkshop,loginProcess,loginName,nowDate,nowShi
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==nowDate+nowShift+moldNoInstall+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"上模"+"测试"});
       // if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoInstall,arrMoldInfoScan)
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),nowDate,nowShift,moldNoInstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineInstall,"上模",loginName,"测试","",""]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoInstall,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),nowDate,nowShift,moldNoInstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineInstall,"上模",loginName,"测试","","",,"",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([[machineInstall,"上模","测试"]]);
         return ["OK","上模信息保存成功"];
       // }
@@ -747,7 +761,8 @@ function saveTestUninstallMold(loginWorkshop,loginProcess,loginName,nowDate,nowS
       let arrDataFilter=arrData.filter(v=>{return v[1]+v[2]+v[3]+halfWidthToFullWidth(v[4])+v[6]+v[9]+v[11]==nowDate+nowShift+moldNoUninstall+halfWidthToFullWidth(arrMoldInfoScan[0])+arrMoldInfoScan[3]+"下模"+"测试"});
       // if(arrDataFilter.length<1){
         let objMoldInfo=getMoldInfoFromNoStep(arrMoldInfo,arrMoldNoStep,moldNoUninstall,arrMoldInfoScan)
-        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),nowDate,nowShift,moldNoUninstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineUninstall,"下模",loginName,"测试","",""]);
+        let qrCode=buildQRCode(objMoldInfo["模具名称"],moldNoUninstall,objMoldInfo["产品名称"],objMoldInfo["模具步骤"]);
+        sbn_MoldMainData.appendRow([formatVariableToYMDHMS(new Date()),nowDate,nowShift,moldNoUninstall,halfWidthToFullWidth(objMoldInfo["模具名称"]),objMoldInfo["产品名称"],objMoldInfo["模具步骤"],"",machineUninstall,"下模",loginName,"测试","","",,"",qrCode]);
         sbn_MoldStatusList.getRange(position+1,5,1,3).setValues([[machineUninstall,"下模","测试"]]);
         return ["OK","上模信息保存成功"];
       // }
@@ -781,13 +796,32 @@ function formatVariableToYMDHMS(variable){
   return result;
 }
 
+/***构建模具二维码文本***/
+function buildQRCode(moldName,moldNo,product,step){
+  return "模具名称："+moldName+" 模具号："+moldNo+" 产品名称："+product+" 模具步骤："+step;
+}
+
 /***根据模具号查询模具信息（供前端纯模具号扫码调用，查模具状态清单保证名称匹配）***/
+/***页面加载时预取模具状态清单，减少扫码时网络延迟***/
+function getMoldStatusList(){
+  try{
+    let saas_MoldMainData=SpreadsheetApp.openById(moldManagementRcord_id);
+    let sbn_MoldStatusList=saas_MoldMainData.getSheetByName("模具状态清单");
+    let arrStatusList=sbn_MoldStatusList.getRange(2,1,sbn_MoldStatusList.getLastRow()-1,5).getDisplayValues();
+    // 返回 [模具名称, 模具号, 产品名称, 模具步骤, 模具位置]，按模具号建立索引
+    return ["OK",arrStatusList];
+  }
+  catch(e){
+    return ["NO",e.toString()];
+  }
+}
+
 function getMoldInfoByNo(moldNo,step){
   try{
     let saas_MoldMainData=SpreadsheetApp.openById(moldManagementRcord_id);
     let sbn_MoldStatusList=saas_MoldMainData.getSheetByName("模具状态清单");
     let arrStatusList=sbn_MoldStatusList.getRange(2,1,sbn_MoldStatusList.getLastRow()-1,11).getDisplayValues();
-    // 状态清单列: [0]模具名称 [1]模具号 [2]产品名称 [3]模具步骤
+    // 状态清单列: [0]模具名称 [1]模具号 [2]产品名称 [3]模具步骤 [4]模具位置
     let matchRow;
     if(step){
       matchRow=arrStatusList.find(v=>v[1]==moldNo&&v[3]==step);
@@ -796,7 +830,7 @@ function getMoldInfoByNo(moldNo,step){
       matchRow=arrStatusList.find(v=>v[1]==moldNo);
     }
     if(matchRow){
-      return ["OK",matchRow[0],moldNo,matchRow[2],matchRow[3]];
+      return ["OK",matchRow[0],moldNo,matchRow[2],matchRow[3],matchRow[4]||""];
     }
     else{
       return ["NO","模具号 "+moldNo+" 未在模具状态清单中找到"];

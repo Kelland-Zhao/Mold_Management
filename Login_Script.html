@@ -1,20 +1,5 @@
 <script>  
     
-  /***禁用鼠标右键***/
-  window.onload=function(){       
-    document.onkeydown=function(){
-      let e=window.event||arguments[0];
-      if(e.keyCode==123){         
-        return false;
-      }
-      else if((e.ctrlKey)&&(e.shiftKey)&&(e.keyCode==73)){
-        return false;
-      }
-    }
-    document.oncontextmenu=function(){
-      return false;
-    }
-  }
 
   let deployWebUrl="";
   let timerInterval;
