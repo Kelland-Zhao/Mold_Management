@@ -304,7 +304,7 @@ function getHistoryUninstall(loginWorkshop,loginProcess,moldNoHistoryUninstall,a
         if(qrOpenSet.get(qr)!==false){
           arrOpenIndices.add(i);
         }
-        qrOpenSet.set(qr,true);
+        qrOpenSet.set(qr,false);
       }
     }
     let arrDataFilter=[];
