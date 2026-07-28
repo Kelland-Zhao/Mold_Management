@@ -289,12 +289,30 @@ function getHistoryUninstall(loginWorkshop,loginProcess,moldNoHistoryUninstall,a
     // JOIN：只用 QR 码精确匹配
     let arrMoldStatusQR=new Set(arrMoldStatusList.map(v=>v[9]));
     let arrData=sbn_MoldMainData.getRange(1,1,sbn_MoldMainData.getLastRow(),17).getDisplayValues();
+    // 反向扫描：标记每个QR码的"下模"记录是否被后续"上模"关闭
+    // 只有最新一个未被关闭的"下模"记录才应显示
+    let qrOpenSet=new Map(); // QR -> true(open) | false(closed)
+    let arrOpenIndices=new Set();
+    for(let i=arrData.length-1;i>=0;i--){
+      let qr=arrData[i][16];
+      let st=arrData[i][9];
+      let tp=arrData[i][11];
+      if(!qr||tp!="维修")continue;
+      if(st=="上模"){
+        qrOpenSet.set(qr,false);
+      }else if(st=="下模"){
+        if(qrOpenSet.get(qr)!==false){
+          arrOpenIndices.add(i);
+        }
+        qrOpenSet.set(qr,true);
+      }
+    }
     let arrDataFilter=[];
     if(moldNoHistoryUninstall&&arrMoldInfoScan){
-      arrDataFilter=arrData.filter(v=>{return v[3]==moldNoHistoryUninstall&&v[6]==arrMoldInfoScan[3]&&v[9]=="下模"&&v[11]=="维修"&&arrMoldStatusQR.has(v[16]);}).reverse();
+      arrDataFilter=arrData.filter((v,i)=>{return v[3]==moldNoHistoryUninstall&&v[6]==arrMoldInfoScan[3]&&v[9]=="下模"&&v[11]=="维修"&&arrMoldStatusQR.has(v[16])&&arrOpenIndices.has(i);}).reverse();
     }
     else{
-      arrDataFilter=arrData.filter(v=>v[9]=="下模"&&v[11]=="维修"&&arrMoldStatusQR.has(v[16]));
+      arrDataFilter=arrData.filter((v,i)=>v[9]=="下模"&&v[11]=="维修"&&arrMoldStatusQR.has(v[16])&&arrOpenIndices.has(i));
     }
     if(arrDataFilter.length>0){
       // 按下模时间降序排列
