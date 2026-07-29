@@ -681,6 +681,7 @@
         google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
           arrMoldInfoScan=[];
           if(result[0]=="OK"){
+            tbody.find("tr").eq(rowInstallMold).remove();
             showResult('success','上模信息保存成功','','',false,'',2000,true)
           }
           else{
