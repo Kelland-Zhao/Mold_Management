@@ -235,8 +235,17 @@
     let moldNoUninstallDes=$("#moldNoUninstallDes").val();
     let machineUninstall=$("#prodUninstallMachine").val();
     let uninstallRemark=$("#uninstallRemark").val();
-    if(moldNoUninstall!=""&&moldNoUninstallDes!=""&&machineUninstall!=""){
-      if(arrMoldInfoScan.length==4){
+    let missing=[];
+    if(moldNoUninstall=="")missing.push("模具号");
+    if(moldNoUninstallDes=="")missing.push("问题记录");
+    if(machineUninstall=="")missing.push("机台号");
+    if(missing.length>0){
+      showResult('error','缺少必填信息','缺少：'+missing.join("、"),'',true,'','',false);
+    }
+    else if(arrMoldInfoScan.length!=4){
+      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+    }
+    else{
       let tbody=$("#tbodyReInfo");
       tbody.empty();
       let loginWorkshop=$("#loginWorkshop").text().trim();
@@ -273,13 +282,6 @@
           showResult('error','下模信息保存失败',result[1],'',true,'','',false);
         }
       }).saveReUninstallMold(loginWorkshop,loginProcess,nowDate,shift,moldNoUninstall,machineUninstall,loginName,moldNoUninstallDes,uninstallRemark,arrMoldInfoScan)
-      }
-      else{
-        showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
-      }
-    }
-    else{
-      showResult('error','模具号/问题记录/机台号不可为空','请填写完整信息','',true,'','',false);
     }
   })
 
@@ -388,8 +390,13 @@
     let rowInWarehouse=$("#rowInWarehouse").val();
     let moldNoInWarehouse=$("#moldNoInWarehouse").val();
     let inWarehourseRemark=$("#inWarehourseRemark").val();
-    if(arrMoldInfoScan.length==4){
-      if(moldNoInWarehouse!=""){
+    if(moldNoInWarehouse==""){
+      showResult('error','缺少必填信息','模具号不可为空','',true,'','',false);
+    }
+    else if(arrMoldInfoScan.length!=4){
+      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+    }
+    else{
         let tbody=$("#tbodyReInfo");
         let tbodyRow=tbody.find("tr").eq(rowInWarehouse).find("td");
         showRunning('','正在保存入库信息……','','',120000);
@@ -416,10 +423,6 @@
         else{
           showResult('error','模具信息不一致','请确认','',true,'','',false);
         }
-      }
-    }
-    else{
-      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
     }
   })
 
@@ -528,8 +531,13 @@
     let rowOutWarehouse=$("#rowOutWarehouse").val();
     let moldNoOutWarehouse=$("#moldNoOutWarehouse").val();
     let outWarehourseRemark=$("#outWarehourseRemark").val();
-    if(arrMoldInfoScan.length==4){
-      if(moldNoOutWarehouse!=""){
+    if(moldNoOutWarehouse==""){
+      showResult('error','缺少必填信息','模具号不可为空','',true,'','',false);
+    }
+    else if(arrMoldInfoScan.length!=4){
+      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+    }
+    else{
         let tbody=$("#tbodyReInfo");
         let tbodyRow=tbody.find("tr").eq(rowOutWarehouse).find("td");
         showRunning('','正在保存出库信息……','','',120000);
@@ -556,10 +564,6 @@
         else{
           showResult('error','模具信息不一致','请确认','',true,'','',false);
         }
-      }
-    }
-    else{
-      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
     }
   })
 
@@ -669,38 +673,43 @@
     let moldNoInstall=$("#moldNoInstall").val();
     let machineInstall=$("#prodInstallMachine").val();
     let installRemark=$("#installRemark").val();
-    if(arrMoldInfoScan.length==4){
-      let tbody=$("#tbodyReInfo");
-      let tbodyRow=tbody.find("tr").eq(rowInstallMold).find("td");
-      let loginWorkshop=$("#loginWorkshop").text().trim();
-      let loginProcess=$("#loginProcess").text().trim();
-      let loginName=$("#loginName").text().trim();
-      let rowDate=tbodyRow.eq(0).text().trim();
-      let rowShift=tbodyRow.eq(1).text().trim();
-      let rowMoldNo=tbodyRow.eq(2).text().trim();
-      let rowMachine=tbodyRow.eq(3).text().trim();
-      let rowDes=tbodyRow.eq(4).text().trim();
-      let rowRemark=tbodyRow.eq(5).text().trim();
-      if(moldNoInstall!=""&&machineInstall!=""&&moldNoInstall==rowMoldNo){    /**&&machineInstall==rowMachine【不限制上模机台】**/
-        showRunning('','正在保存上模信息……','','',120000);
-        google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
-          arrMoldInfoScan=[];
-          if(result[0]=="OK"){
-            tbody.find("tr").eq(rowInstallMold).remove();
-            showResult('success','上模信息保存成功','','',false,'',2000,true)
-          }
-          else{
-            showResult('error','上模信息保存失败',result[1],'',true,'','',false);
-          }
-        }).saveReInstallMold(loginWorkshop,loginProcess,loginName,rowDate,rowShift,moldNoInstall,machineInstall,installRemark,rowMoldNo,rowMachine,rowDes,rowRemark,arrMoldInfoScan);
-        
-      }
-      else{
-        showResult('error','模具及机台信息错误','确认模具与机台信息一致','',true,'','',false);
-      }
+    let missing=[];
+    if(moldNoInstall=="")missing.push("模具号");
+    if(machineInstall=="")missing.push("机台号");
+    if(missing.length>0){
+      showResult('error','缺少必填信息','缺少：'+missing.join("、"),'',true,'','',false);
+    }
+    else if(arrMoldInfoScan.length!=4){
+      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
     }
     else{
-      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+      let tbody=$("#tbodyReInfo");
+      let tbodyRow=tbody.find("tr").eq(rowInstallMold).find("td");
+      let rowMoldNo=tbodyRow.eq(2).text().trim();
+      if(moldNoInstall!=rowMoldNo){
+        showResult('error','模具信息不一致','确认模具信息一致','',true,'','',false);
+      }
+      else{
+        let loginWorkshop=$("#loginWorkshop").text().trim();
+        let loginProcess=$("#loginProcess").text().trim();
+        let loginName=$("#loginName").text().trim();
+        let rowDate=tbodyRow.eq(0).text().trim();
+        let rowShift=tbodyRow.eq(1).text().trim();
+        let rowMachine=tbodyRow.eq(3).text().trim();
+        let rowDes=tbodyRow.eq(4).text().trim();
+        let rowRemark=tbodyRow.eq(5).text().trim();
+        showRunning('','正在保存上模信息……','','',120000);
+      google.script.run.withFailureHandler(judgeFailure).withSuccessHandler(result=>{
+        arrMoldInfoScan=[];
+        if(result[0]=="OK"){
+          tbody.find("tr").eq(rowInstallMold).remove();
+          showResult('success','上模信息保存成功','','',false,'',2000,true)
+        }
+        else{
+          showResult('error','上模信息保存失败',result[1],'',true,'','',false);
+        }
+      }).saveReInstallMold(loginWorkshop,loginProcess,loginName,rowDate,rowShift,moldNoInstall,machineInstall,installRemark,rowMoldNo,rowMachine,rowDes,rowRemark,arrMoldInfoScan);
+      }
     }
   })
 
