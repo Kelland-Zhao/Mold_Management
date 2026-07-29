@@ -235,7 +235,8 @@
     let moldNoUninstallDes=$("#moldNoUninstallDes").val();
     let machineUninstall=$("#prodUninstallMachine").val();
     let uninstallRemark=$("#uninstallRemark").val();
-    if(arrMoldInfoScan.length==4){
+    if(moldNoUninstall!=""&&moldNoUninstallDes!=""&&machineUninstall!=""){
+      if(arrMoldInfoScan.length==4){
       let tbody=$("#tbodyReInfo");
       tbody.empty();
       let loginWorkshop=$("#loginWorkshop").text().trim();
@@ -272,9 +273,13 @@
           showResult('error','下模信息保存失败',result[1],'',true,'','',false);
         }
       }).saveReUninstallMold(loginWorkshop,loginProcess,nowDate,shift,moldNoUninstall,machineUninstall,loginName,moldNoUninstallDes,uninstallRemark,arrMoldInfoScan)
+      }
+      else{
+        showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+      }
     }
     else{
-      showResult('error','缺失模具信息','确认模具信息完整','',true,'','',false);
+      showResult('error','模具号/问题记录/机台号不可为空','请填写完整信息','',true,'','',false);
     }
   })
 
@@ -524,7 +529,7 @@
     let moldNoOutWarehouse=$("#moldNoOutWarehouse").val();
     let outWarehourseRemark=$("#outWarehourseRemark").val();
     if(arrMoldInfoScan.length==4){
-      if(moldNoInWarehouse!=""){
+      if(moldNoOutWarehouse!=""){
         let tbody=$("#tbodyReInfo");
         let tbodyRow=tbody.find("tr").eq(rowOutWarehouse).find("td");
         showRunning('','正在保存出库信息……','','',120000);
